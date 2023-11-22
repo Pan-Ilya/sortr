@@ -19,14 +19,20 @@ except FileNotFoundError:
 except IndexError:
     print('В файле settings.txt нужно указать все необходимые пути.')
 
-
 # TODO: 2) Request to user to get path who contains files to do.
 from_path = input().strip()
 
 # TODO: 3) Read all filenames in from_path directory and sort each file to their hot folder.
 # TODO: -- Using file size, colorify and canvas print size.
-
-
+# TODO: !!! DO RIGHT FILENAME PATTERN !!!
+right_filename_pattern = r'(?i)(?P<date>\d{2}-\d{2}).*?' \
+                         r'(?P<OrderID>\d+)_.*?' \
+                         r'(?P<size>\d+[xх]\d+)_.*?' \
+                         r'(?P<color>\d\+\d)_.*?' \
+                         r'(?:(?P<lam>[a-z]{3,}\d\+\d)|_)_.*?' \
+                         r'(?P<canvas_size>[\w]{3}\d\+?)_.*?' \
+                         r'(?P<quantity>[\d ]{1,}).*?' \
+                         r'(?P<file_format>\.pdf)?'
 
 # TODO: ??? 4) Check output hot folder "output" and "errors" and send a message to user how many files are done
 #  len(output) and how many files are invalid len(errors). summ() of this file will == to len(from_path).
