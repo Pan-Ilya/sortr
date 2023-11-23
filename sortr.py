@@ -28,7 +28,6 @@ from_path = input().strip()
 
 # TODO: 3) Read all filenames in from_path directory and sort each file to their hot folder.
 # TODO: -- Using file size, colorify and canvas print size.
-# TODO: !!! DO RIGHT FILENAME PATTERN !!!
 
 
 def get_all_filenames_in_directory(path: str) -> list[str]:
@@ -47,6 +46,42 @@ def get_params_from_filename(filename: str) -> list[str]:
 
     _, _, file_size, file_colorify, file_canvas_print_size, _, _ = re.findall(right_filename_pattern, filename)[0]
     return [file_size, file_colorify, file_canvas_print_size]
+
+
+while True:
+    for filename in get_all_filenames_in_directory(from_path):
+        filename_params = get_params_from_filename(filename)
+
+        match filename_params:
+            # Всё что идёт в viz_4+0
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size in ['89x49', '49x89'] and f_colorify == '4+0' and f_canvas_print_size == 'SRA3':
+                pass
+
+            # Всё что идёт в viz_4+4
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size in ['89x49', '49x89'] and f_colorify == '4+4' and f_canvas_print_size == 'SRA3':
+                pass
+
+            # Всё что идёт в SRA3_universal
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size not in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3':
+                pass
+
+            # Всё что идёт в SRA3+_universal
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size not in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+':
+                pass
+
+            # Всё что идёт сразу в папку "готово" - output
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+' or \
+                   f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3':
+                pass
+
+            # Всё остальное. Wildcard.
+            case _:
+                pass
 
 # TODO: ??? 4) Check output hot folder "output" and "errors" and send a message to user how many files are done
 #  len(output) and how many files are invalid len(errors). summ() of this file will == to len(from_path).
