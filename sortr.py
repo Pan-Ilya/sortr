@@ -20,11 +20,21 @@ try:
     errors = lines[5]
 except FileNotFoundError:
     print('В текущей директории отсвутствует файл settings.txt')
+    time.sleep(5)
+    exit(1)
 except IndexError:
     print('В файле settings.txt нужно указать все необходимые пути.')
+    time.sleep(5)
+    exit(1)
 
 # TODO: 2) Request to user to get path who contains files to do.
-from_path = input().strip()
+from_path = input('Укажите путь откуда брать макеты для расскалдки:\n').strip()
+try:
+    os.chdir(from_path)
+except FileNotFoundError:
+    print('Не верный адрес.')
+    time.sleep(5)
+    exit(1)
 
 
 # TODO: 3) Read all filenames in from_path directory and sort each file to their hot folder.
@@ -32,8 +42,13 @@ from_path = input().strip()
 
 
 def get_all_filenames_in_directory(path: str) -> list[str]:
-    for _, _, filenames in os.walk(from_path):
-        return filenames
+    try:
+        for _, _, filenames in os.walk(from_path):
+            return filenames
+    except FileNotFoundError:
+        print('Не верный адрес.')
+        time.sleep(5)
+        exit(1)
 
 
 def get_params_from_filename(filename: str) -> list[str]:
@@ -50,7 +65,6 @@ def get_params_from_filename(filename: str) -> list[str]:
 
 
 while True:
-    os.chdir(from_path)
 
     for filename in get_all_filenames_in_directory(from_path):
         filename_params = get_params_from_filename(filename)
