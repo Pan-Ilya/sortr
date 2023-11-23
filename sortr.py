@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 # TODO: 1) Open settings.txt file to get hot folder's paths.
 # TODO: -- All input files go there.
@@ -49,6 +50,8 @@ def get_params_from_filename(filename: str) -> list[str]:
 
 
 while True:
+    os.chdir(from_path)
+
     for filename in get_all_filenames_in_directory(from_path):
         filename_params = get_params_from_filename(filename)
 
@@ -56,32 +59,34 @@ while True:
             # Всё что идёт в viz_4+0
             case f_size, f_colorify, f_canvas_print_size \
                 if f_size in ['89x49', '49x89'] and f_colorify == '4+0' and f_canvas_print_size == 'SRA3':
-                pass
+                os.replace(filename, input_viz_4_0 + filename)
 
             # Всё что идёт в viz_4+4
             case f_size, f_colorify, f_canvas_print_size \
                 if f_size in ['89x49', '49x89'] and f_colorify == '4+4' and f_canvas_print_size == 'SRA3':
-                pass
-
-            # Всё что идёт в SRA3_universal
-            case f_size, f_colorify, f_canvas_print_size \
-                if f_size not in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3':
-                pass
-
-            # Всё что идёт в SRA3+_universal
-            case f_size, f_colorify, f_canvas_print_size \
-                if f_size not in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+':
-                pass
+                os.replace(filename, input_viz_4_4 + filename)
 
             # Всё что идёт сразу в папку "готово" - output
             case f_size, f_colorify, f_canvas_print_size \
-                if f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+' or \
-                   f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3':
-                pass
+                if (f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+') or \
+                   (f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3'):
+                os.replace(filename, output + filename)
+
+            # Всё что идёт в SRA3_universal
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3':
+                os.replace(filename, input_SRA3 + filename)
+
+            # Всё что идёт в SRA3+_universal
+            case f_size, f_colorify, f_canvas_print_size \
+                if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3+':
+                os.replace(filename, input_SRA3_plus + filename)
 
             # Всё остальное. Wildcard.
             case _:
-                pass
+                os.replace(filename, errors + filename)
+
+    time.sleep(3)
 
 # TODO: ??? 4) Check output hot folder "output" and "errors" and send a message to user how many files are done
 #  len(output) and how many files are invalid len(errors). summ() of this file will == to len(from_path).
