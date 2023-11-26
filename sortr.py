@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import time
 
 
@@ -64,6 +65,27 @@ def get_params_from_filename(filename: str) -> list[str]:
     return [file_size, file_colorify, file_canvas_print_siz, extra]
 
 
+def replacer(filename: str, destination: str) -> None:
+    # Перемещение файла в указанную директорию
+    if os.path.isfile(filename):
+        os.replace(filename, destination + filename)
+        print('Ok_1')
+
+    # Перезапсиь папки и содержимого
+    elif os.path.isdir(filename) and os.path.exists(destination + filename):
+        shutil.rmtree(destination + filename)
+        os.replace(filename, destination + filename)
+        print('Ok_2')
+
+    # Перемещение папки в указанную директорию
+    elif os.path.isdir(filename):
+        os.replace(filename, destination + filename)
+        print('Ok_3')
+
+    else:
+        raise NotADirectoryError('replacer function Error!')
+
+
 while True:
 
     try:
@@ -74,50 +96,54 @@ while True:
                 # Всё что идёт в viz_4+0
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if f_size in ['89x49', '49x89'] and f_colorify in ['4+0', '1+0'] and f_canvas_print_size == 'SRA3':
-                    os.replace(filename, input_viz_4_0 + filename)
+                    replacer(filename, input_viz_4_0 + filename)
 
                 # Всё что идёт в viz_4+4
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if f_size in ['89x49', '49x89'] and f_colorify in ['4+4', '1+1'] and f_canvas_print_size == 'SRA3':
-                    os.replace(filename, input_viz_4_4 + filename)
+                    replacer(filename, input_viz_4_4 + filename)
 
                 # Всё что идёт сразу в папку "готово" - output
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if (f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+') or \
                        (f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3'):
-                    os.replace(filename, output + filename)
+                    replacer(filename, output + filename)
 
                 # Всё что идёт в SRA3_universal_1_rez
                 case f_size, f_colorify, f_canvas_print_size, extra \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and \
                        f_canvas_print_size == 'SRA3' and extra:
-                    os.replace(filename, input_SRA3_1_rez + filename)
+                    replacer(filename, input_SRA3_1_rez + filename)
 
                 # Всё что идёт в SRA3+_universal_1_rez
                 case f_size, f_colorify, f_canvas_print_size, extra \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and \
                        f_canvas_print_size == 'SRA3+' and extra:
-                    os.replace(filename, input_SRA3_plus_1_rez + filename)
+                    replacer(filename, input_SRA3_plus_1_rez + filename)
 
                 # Всё что идёт в SRA3_universal
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3':
-                    os.replace(filename, input_SRA3 + filename)
+                    replacer(filename, input_SRA3 + filename)
 
                 # Всё что идёт в SRA3+_universal
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3+':
-                    os.replace(filename, input_SRA3_plus + filename)
+                    replacer(filename, input_SRA3_plus + filename)
 
                 # Всё остальное. Wildcard.
                 case _:
-                    os.replace(filename, errors + filename)
+                    replacer(filename, errors + filename)
 
         time.sleep(3)
 
-    except NotADirectoryError:
-        print(f'Не понимаю файл с именем {filename}\n направляю в папку с ошибками')
-        os.replace(filename, errors + filename)
+    except IndexError:
+        print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.')
+        replacer(filename, errors + filename)
+    except Exception as E:
+        print(E)
+        print('Произошла неожидання ошибка, вынужден закругляться')
+        exit_program(5, 1)
 
 # TODO: ??? 4) Check output hot folder "output" and "errors" and send a message to user how many files are done
 #  len(output) and how many files are invalid len(errors). summ() of this file will == to len(from_path).
