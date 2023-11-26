@@ -46,8 +46,7 @@ except FileNotFoundError:
 
 def get_all_filenames_in_directory(path: str) -> list[str]:
     try:
-        for _, _, filenames in os.walk(from_path):
-            return filenames
+        return [file.name for file in os.scandir(path)]
     except FileNotFoundError:
         print('Не верный адрес.')
         exit_program(5, 1)
