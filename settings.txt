@@ -1,5 +1,8 @@
-1111111111111111
-222222222222222
-33333333333333
-4444444444444
-
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/SRA3/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/SRA3+/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/SRA3_1_rez/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/SRA3+_1_rez/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/viz_4+0/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/viz_4+4/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/out/
+/home/pan_ilya/PycharmProjects/File_Sorter/maketi/errors/
