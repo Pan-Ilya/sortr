@@ -3,26 +3,26 @@ import re
 import time
 
 
-# TODO: 1) Open settings.txt file to get hot folder's paths.
-# TODO: -- All input files go there.
+# 1) Open settings.txt file to get hot folder's paths.
+# -- All input files go there.
 def exit_program(time_sleep: int, exit_code: int) -> None:
     time.sleep(time_sleep)
     exit(exit_code)
 
 
 try:
-    with open('settings.txt', 'r', encoding='utf-8') as settings:
+    with open('settings.txt', 'r') as settings:
         lines = list(map(str.strip, settings.readlines()))
 
-    input_SRA3 = lines[0]
-    input_SRA3_plus = lines[1]
-    input_viz_4_0 = lines[2]
-    input_viz_4_4 = lines[3]
+    input_SRA3 = fr'{lines[0]}'
+    input_SRA3_plus = fr'{lines[1]}'
+    input_viz_4_0 = fr'{lines[2]}'
+    input_viz_4_4 = fr'{lines[3]}'
 
-    # TODO:  -- All finish files were here.
-    output = lines[4]
-    # TODO:  -- All errors files were here.
-    errors = lines[5]
+    # -- All finish files were here.
+    output = fr'{lines[4]}'
+    # -- All errors files were here.
+    errors = fr'{lines[5]}'
 except FileNotFoundError:
     print('В текущей директории отсвутствует файл settings.txt')
     exit_program(5, 1)
@@ -30,13 +30,15 @@ except IndexError:
     print('В файле settings.txt нужно указать все необходимые пути.')
     exit_program(5, 1)
 
-# TODO: 2) Request to user to get path who contains files to do.
-from_path = input('Укажите путь откуда брать макеты для расскалдки:\n').strip()
+# 2) Request to user to get path who contains files to do.
+print('Укажите путь откуда брать макеты для расскалдки:')
+from_path = fr'{input().strip()}'
 try:
     os.chdir(from_path)
 except FileNotFoundError:
     print('Не верный адрес.')
     exit_program(5, 1)
+
 
 # TODO: 3) Read all filenames in from_path directory and sort each file to their hot folder.
 # TODO: -- Using file size, colorify and canvas print size.
