@@ -26,7 +26,7 @@ try:
     # -- All errors files were here.
     errors = fr'{lines[7]}'
 except FileNotFoundError:
-    print('В текущей директории отсвутствует файл settings.txt')
+    print('В текущей директории отсутствует файл settings.txt')
     exit_program(5, 1)
 except IndexError:
     print('В файле settings.txt нужно указать все необходимые пути.')
