@@ -53,16 +53,13 @@ def get_all_filenames_in_directory(path: str) -> list[str]:
 
 
 def get_params_from_filename(filename: str) -> list[str]:
-    right_filename_pattern = r'(?i)(?P<date>\d{2}-\d{2}).*?' \
-                             r'(?P<OrderID>\d+)_.*?' \
-                             r'(?P<size>\d+[xх]\d+)_.*?' \
-                             r'(?P<color>\d\+\d)_.*?' \
-                             r'(?P<canvas_size>[\w]{3}\d\+?)_.*?' \
-                             r'(?P<quantity>[\d ]{1,}).*?' \
-                             r'(?P<file_format>\.pdf)?'
+    right_filename_pattern = r'(?i).*?(?P<size>\d+[xх]\d+).*?' \
+                             r'(?P<color>\d\+\d).*?' \
+                             r'(?P<canvas_size>SRA\d\+?).*?' \
+                             r'(?P<extra>--)?\.'
 
-    _, _, file_size, file_colorify, file_canvas_print_size, _, _ = re.findall(right_filename_pattern, filename)[0]
-    return [file_size, file_colorify, file_canvas_print_size]
+    file_size, file_colorify, file_canvas_print_siz, extra = re.findall(right_filename_pattern, filename)[0]
+    return [file_size, file_colorify, file_canvas_print_siz, extra]
 
 
 while True:
