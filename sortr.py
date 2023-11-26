@@ -16,13 +16,15 @@ try:
 
     input_SRA3 = fr'{lines[0]}'
     input_SRA3_plus = fr'{lines[1]}'
-    input_viz_4_0 = fr'{lines[2]}'
-    input_viz_4_4 = fr'{lines[3]}'
+    input_SRA3_1_rez = fr'{lines[2]}'
+    input_SRA3_plus_1_rez = fr'{lines[3]}'
+    input_viz_4_0 = fr'{lines[4]}'
+    input_viz_4_4 = fr'{lines[5]}'
 
     # -- All finish files were here.
-    output = fr'{lines[4]}'
+    output = fr'{lines[6]}'
     # -- All errors files were here.
-    errors = fr'{lines[5]}'
+    errors = fr'{lines[7]}'
 except FileNotFoundError:
     print('В текущей директории отсвутствует файл settings.txt')
     exit_program(5, 1)
