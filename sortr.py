@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import time
+from PyPDF2 import PdfReader
 
 
 # 1) Open settings.txt file to get hot folder's paths.
@@ -65,6 +66,7 @@ def get_params_from_filename(filename: str) -> list[str]:
     return [file_size, file_colorify, file_canvas_print_siz, extra]
 
 
+# TODO: Реализовать ф-цию. Особенно работу с папками по перезаписи и просто перемещении.
 def replacer(filename: str, destination: str) -> None:
     # Перемещение файла в указанную директорию
     if os.path.isfile(filename):
@@ -73,13 +75,17 @@ def replacer(filename: str, destination: str) -> None:
 
     # Перезапсиь папки и содержимого
     elif os.path.isdir(filename) and os.path.exists(destination + filename):
+        print('destination + filename')
         shutil.rmtree(destination + filename)
-        os.replace(filename, destination + filename)
+        print('Удалено')
+        os.replace(filename, destination)
         print('Ok_2')
 
     # Перемещение папки в указанную директорию
     elif os.path.isdir(filename):
-        os.replace(filename, destination + filename)
+        print(destination + filename, '111111111111111111')
+        print(os.path.exists(destination + filename))
+        os.replace(filename, destination)
         print('Ok_3')
 
     else:
@@ -91,16 +97,25 @@ while True:
     try:
         for filename in get_all_filenames_in_directory(from_path):
             filename_params = get_params_from_filename(filename)
+            pages = len(PdfReader(filename).pages)
 
             match filename_params:
+                # Начальная проверка на кол-во страниц документа и его цветность.
+                case _, f_colorify, _, _ \
+                    if f_colorify in ['1+0', '4+0', '5+0'] and pages != 1 or \
+                       f_colorify in ['1+1', '4+4', '5+5'] and pages != 2:
+                    replacer(filename, errors + filename)
+
                 # Всё что идёт в viz_4+0
                 case f_size, f_colorify, f_canvas_print_size, _ \
-                    if f_size in ['89x49', '49x89'] and f_colorify in ['4+0', '1+0'] and f_canvas_print_size == 'SRA3':
+                    if (f_size in ['89x49', '49x89'] and f_colorify in ['1+0', '4+0', '5+0'] and
+                        f_canvas_print_size == 'SRA3'):
                     replacer(filename, input_viz_4_0 + filename)
 
                 # Всё что идёт в viz_4+4
                 case f_size, f_colorify, f_canvas_print_size, _ \
-                    if f_size in ['89x49', '49x89'] and f_colorify in ['4+4', '1+1'] and f_canvas_print_size == 'SRA3':
+                    if (f_size in ['89x49', '49x89'] and f_colorify in ['1+1', '4+4', '5+5'] and
+                        f_canvas_print_size == 'SRA3'):
                     replacer(filename, input_viz_4_4 + filename)
 
                 # Всё что идёт сразу в папку "готово" - output
@@ -111,14 +126,14 @@ while True:
 
                 # Всё что идёт в SRA3_universal_1_rez
                 case f_size, f_colorify, f_canvas_print_size, extra \
-                    if f_size not in ['450x320', '320x450', '487x330', '330x487'] and \
-                       f_canvas_print_size == 'SRA3' and extra:
+                    if (f_size not in ['450x320', '320x450', '487x330', '330x487'] and
+                        f_canvas_print_size == 'SRA3' and extra):
                     replacer(filename, input_SRA3_1_rez + filename)
 
                 # Всё что идёт в SRA3+_universal_1_rez
                 case f_size, f_colorify, f_canvas_print_size, extra \
-                    if f_size not in ['450x320', '320x450', '487x330', '330x487'] and \
-                       f_canvas_print_size == 'SRA3+' and extra:
+                    if (f_size not in ['450x320', '320x450', '487x330', '330x487'] and
+                        f_canvas_print_size == 'SRA3+' and extra):
                     replacer(filename, input_SRA3_plus_1_rez + filename)
 
                 # Всё что идёт в SRA3_universal
@@ -135,15 +150,12 @@ while True:
                 case _:
                     replacer(filename, errors + filename)
 
-        time.sleep(3)
+            time.sleep(3)
 
     except IndexError:
         print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.')
         replacer(filename, errors + filename)
     except Exception as E:
         print(E)
-        print('Произошла неожидання ошибка, вынужден закругляться')
+        print('Произошла неожидання ошибка, вынужден закругляться.')
         exit_program(5, 1)
-
-# TODO: ??? 4) Check output hot folder "output" and "errors" and send a message to user how many files are done
-#  len(output) and how many files are invalid len(errors). summ() of this file will == to len(from_path).
