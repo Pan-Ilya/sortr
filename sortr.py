@@ -93,13 +93,17 @@ while True:
     try:
         for filename in get_all_filenames_in_directory(from_path):
             filename_params = get_params_from_filename(filename)
-            pages = len(PdfReader(filename).pages)
+
+            if os.path.isfile(filename):
+                pages = len(PdfReader(filename).pages)
+            else:
+                pages = 0
 
             match filename_params:
                 # Начальная проверка на кол-во страниц документа и его цветность.
                 case _, f_colorify, _, _ \
-                    if f_colorify in ['1+0', '4+0', '5+0'] and pages != 1 or \
-                       f_colorify in ['1+1', '4+4', '5+5'] and pages != 2:
+                    if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
+                       f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
                     replacer(filename, errors + filename)
 
                 # Всё что идёт в viz_4+0
@@ -153,5 +157,5 @@ while True:
         replacer(filename, errors + filename)
     except Exception as E:
         print(E)
-        print('Произошла неожидання ошибка, вынужден закругляться.')
-        exit_program(5, 1)
+        print('Произошла неожидання ошибка. Повторяю попытку.')
+        # exit_program(5, 1)
