@@ -66,25 +66,21 @@ def get_params_from_filename(filename: str) -> list[str]:
     return [file_size, file_colorify, file_canvas_print_siz, extra]
 
 
-# TODO: Реализовать ф-цию. Особенно работу с папками по перезаписи и просто перемещении.
 def replacer(filename: str, destination: str) -> None:
     # Перемещение файла в указанную директорию
     if os.path.isfile(filename):
-        os.replace(filename, destination + filename)
+        os.replace(filename, destination)
         print('Ok_1')
 
     # Перезапсиь папки и содержимого
-    elif os.path.isdir(filename) and os.path.exists(destination + filename):
-        print('destination + filename')
-        shutil.rmtree(destination + filename)
+    elif os.path.isdir(filename) and os.path.exists(destination):
+        shutil.rmtree(destination)
         print('Удалено')
         os.replace(filename, destination)
         print('Ok_2')
 
     # Перемещение папки в указанную директорию
     elif os.path.isdir(filename):
-        print(destination + filename, '111111111111111111')
-        print(os.path.exists(destination + filename))
         os.replace(filename, destination)
         print('Ok_3')
 
