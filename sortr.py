@@ -3,6 +3,7 @@ import re
 import shutil
 import time
 from PyPDF2 import PdfReader
+from decimal import Decimal
 
 
 # 1) Open settings.txt file to get hot folder's paths.
@@ -27,6 +28,7 @@ try:
     output = fr'{lines[6]}'
     # -- All errors files were here.
     errors = fr'{lines[7]}'
+
 except FileNotFoundError:
     print('В текущей директории отсутствует файл settings.txt')
     exit_program(5, 1)
@@ -88,6 +90,14 @@ def replacer(filename: str, destination: str) -> None:
         raise NotADirectoryError('replacer function Error!')
 
 
+def get_page_height(filename: PdfReader) -> int:
+    return round(filename.pages[1].trimbox.height / Decimal(2.83))
+
+
+def get_page_width(filename: PdfReader) -> int:
+    return round(filename.pages[1].trimbox.width / Decimal(2.83))
+
+
 while True:
 
     try:
@@ -95,7 +105,8 @@ while True:
             filename_params = get_params_from_filename(filename)
 
             if os.path.isfile(filename):
-                pages = len(PdfReader(filename).pages)
+                pdf_file = PdfReader(filename)
+                pages = len(pdf_file.pages)
             else:
                 pages = 0
 
@@ -105,6 +116,8 @@ while True:
                     if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
                        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
                     replacer(filename, errors + filename)
+
+                # Если файл уже разложен на формат SRA3 или SRA3+, отправляем в папку "готово".
 
                 # Всё что идёт в viz_4+0
                 case f_size, f_colorify, f_canvas_print_size, _ \
