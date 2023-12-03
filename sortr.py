@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import time
+from typing import Any
 from PyPDF2 import PdfReader
 from decimal import Decimal
 
@@ -90,12 +91,18 @@ def replacer(filename: str, destination: str) -> None:
         raise NotADirectoryError('replacer function Error!')
 
 
-def get_page_height(filename: PdfReader) -> int:
-    return round(filename.pages[1].trimbox.height / Decimal(2.83))
+def get_page_height(filename: [PdfReader | Any]) -> int | None:
+    if isinstance(filename, PdfReader):
+        return round(filename.pages[0].trimbox.height / Decimal(2.83))
+    else:
+        return None
 
 
-def get_page_width(filename: PdfReader) -> int:
-    return round(filename.pages[1].trimbox.width / Decimal(2.83))
+def get_page_width(filename: [PdfReader | Any]) -> int | None:
+    if isinstance(filename, PdfReader):
+        return round(filename.pages[0].trimbox.width / Decimal(2.83))
+    else:
+        return None
 
 
 while True:
