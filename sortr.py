@@ -38,13 +38,14 @@ except IndexError:
     exit_program(5, 1)
 
 # 2) Request to user to get path who contains files to do.
-print('Укажите путь откуда брать макеты для расскалдки:')
+print('Укажите путь откуда брать макеты для раскладки:')
 from_path = fr'{input().strip()}'
 try:
     os.chdir(from_path)
 except FileNotFoundError:
     print('Не верный адрес.')
     exit_program(5, 1)
+print(fr'Слушаю текущую папку...')
 
 
 # 3) Read all filenames in from_path directory and sort each file to their hot folder.
@@ -73,19 +74,15 @@ def replacer(filename: str, destination: str) -> None:
     # Перемещение файла в указанную директорию
     if os.path.isfile(filename):
         os.replace(filename, destination)
-        print('Ok_1')
 
-    # Перезапсиь папки и содержимого
+    # Перезапись папки и содержимого
     elif os.path.isdir(filename) and os.path.exists(destination):
         shutil.rmtree(destination)
-        print('Удалено')
         os.replace(filename, destination)
-        print('Ok_2')
 
     # Перемещение папки в указанную директорию
     elif os.path.isdir(filename):
         os.replace(filename, destination)
-        print('Ok_3')
 
     else:
         raise NotADirectoryError('replacer function Error!')
@@ -123,6 +120,7 @@ while True:
                 case _, f_colorify, _, _ \
                     if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
                        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
+                    print(f'Файл {filename} направляю в папку с ошибками.')
                     replacer(filename, errors + filename)
 
                 # Если файл уже разложен на формат SRA3 или SRA3+, отправляем его в папку "готово".
@@ -134,6 +132,7 @@ while True:
                                f_canvas_print_size == 'SRA3+' and \
                                get_page_height(pdf_file) == 330 and get_page_width(pdf_file) == 487
                        ):
+                    print(f'Файл {filename} направляю сразу в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # Всё что идёт в viz_4+0
@@ -152,6 +151,7 @@ while True:
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if (f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+') or \
                        (f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3'):
+                    print(f'Файл {filename} направляю в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # Всё что идёт в SRA3_universal_1_rez
@@ -178,6 +178,7 @@ while True:
 
                 # Всё остальное. Wildcard.
                 case _:
+                    print(f'Файл {filename} направляю в папку с ошибками.')
                     replacer(filename, errors + filename)
 
             time.sleep(3)
@@ -187,5 +188,5 @@ while True:
         replacer(filename, errors + filename)
     except Exception as E:
         print(E)
-        print('Произошла неожидання ошибка. Повторяю попытку.')
+        print('Произошла неожиданная ошибка. Повторяю попытку.')
         # exit_program(5, 1)
