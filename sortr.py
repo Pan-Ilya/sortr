@@ -108,6 +108,7 @@ while True:
                 pdf_file = PdfReader(filename)
                 pages = len(pdf_file.pages)
             else:
+                pdf_file = None
                 pages = 0
 
             match filename_params:
@@ -117,7 +118,16 @@ while True:
                        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
                     replacer(filename, errors + filename)
 
-                # Если файл уже разложен на формат SRA3 или SRA3+, отправляем в папку "готово".
+                # Если файл уже разложен на формат SRA3 или SRA3+, отправляем его в папку "готово".
+                case _, _, f_canvas_print_size, _ \
+                    if (
+                               f_canvas_print_size == 'SRA3' and \
+                               get_page_height(pdf_file) == 320 and get_page_width(pdf_file) == 450
+                       ) or (
+                               f_canvas_print_size == 'SRA3+' and \
+                               get_page_height(pdf_file) == 330 and get_page_width(pdf_file) == 487
+                       ):
+                    replacer(filename, output + filename)
 
                 # Всё что идёт в viz_4+0
                 case f_size, f_colorify, f_canvas_print_size, _ \
