@@ -90,14 +90,14 @@ def replacer(filename: str, destination: str) -> None:
 
 def get_page_height(filename: [PdfReader | Any]) -> int | None:
     if isinstance(filename, PdfReader):
-        return round(filename.pages[0].trimbox.height / Decimal(2.83))
+        return filename.pages[0].trimbox.height // Decimal(2.83)
     else:
         return None
 
 
 def get_page_width(filename: [PdfReader | Any]) -> int | None:
     if isinstance(filename, PdfReader):
-        return round(filename.pages[0].trimbox.width / Decimal(2.83))
+        return filename.pages[0].trimbox.width // Decimal(2.83)
     else:
         return None
 
