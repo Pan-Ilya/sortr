@@ -45,7 +45,7 @@ try:
 except FileNotFoundError:
     print('Не верный адрес.')
     exit_program(5, 1)
-print(fr'Слушаю текущую папку...')
+print('Слушаю текущую папку...\n')
 
 
 # 3) Read all filenames in from_path directory and sort each file to their hot folder.
@@ -127,12 +127,12 @@ while True:
                 case _, _, f_canvas_print_size, _ \
                     if (
                                f_canvas_print_size == 'SRA3' and \
-                               get_page_height(pdf_file) == 320 and get_page_width(pdf_file) == 450
+                               get_page_height(pdf_file) in [320, 450] and get_page_width(pdf_file) in [320, 450]
                        ) or (
                                f_canvas_print_size == 'SRA3+' and \
-                               get_page_height(pdf_file) == 330 and get_page_width(pdf_file) == 487
+                               get_page_height(pdf_file) in [330, 487] and get_page_width(pdf_file) in [330, 487]
                        ):
-                    print(f'Файл {filename} направляю сразу в папку с готовыми макетами.')
+                    print(f'Файл {filename} перенаправляю сразу в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # Всё что идёт в viz_4+0
@@ -181,8 +181,6 @@ while True:
                     print(f'Файл {filename} направляю в папку с ошибками.')
                     replacer(filename, errors + filename)
 
-            time.sleep(3)
-
     except IndexError:
         print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.')
         replacer(filename, errors + filename)
@@ -190,3 +188,5 @@ while True:
         print(E)
         print('Произошла неожиданная ошибка. Повторяю попытку.')
         # exit_program(5, 1)
+    finally:
+        time.sleep(3)
