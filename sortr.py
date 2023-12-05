@@ -120,7 +120,7 @@ while True:
                 case _, f_colorify, _, _ \
                     if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
                        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
-                    print(f'Файл {filename} направляю в папку с ошибками.')
+                    print(f'{filename} направляю в папку с ошибками.\nЦветность документа не соответствует подписи.\n')
                     replacer(filename, errors + filename)
 
                 # Проверка trimbox-a документа:
@@ -141,7 +141,7 @@ while True:
                                        get_page_width(pdf_file) in [330, 487]
                                )
                        ):
-                    print(f'Файл {filename} перенаправляю сразу в папку с готовыми макетами.')
+                    # print(f'Файл {filename} перенаправляю сразу в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # 2) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox НЕ соответствует -
@@ -161,7 +161,7 @@ while True:
                                        get_page_width(pdf_file) in [320, 450]
                                )
                        ):
-                    print(f'Файл {filename} направляю в папку с ошибками.')
+                    print(f'{filename} направляю в папку с ошибками.\nТрим-бокс текущей раскладки не соответствует подписи документа.\n')
                     replacer(filename, errors + filename)
 
                 # Всё что идёт в viz_4+0
@@ -180,7 +180,7 @@ while True:
                 case f_size, f_colorify, f_canvas_print_size, _ \
                     if (f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+') or \
                        (f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3'):
-                    print(f'Файл {filename} направляю в папку с готовыми макетами.')
+                    # print(f'Файл {filename} направляю в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # Всё что идёт в SRA3_universal_1_rez
@@ -207,11 +207,11 @@ while True:
 
                 # Всё остальное. Wildcard.
                 case _:
-                    print(f'Файл {filename} направляю в папку с ошибками.')
+                    print(f'[E] Файл {filename} направляю в папку с ошибками.')
                     replacer(filename, errors + filename)
 
     except IndexError:
-        print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.')
+        print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
         replacer(filename, errors + filename)
     except Exception as E:
         print(E)
