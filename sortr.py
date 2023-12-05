@@ -123,17 +123,46 @@ while True:
                     print(f'Файл {filename} направляю в папку с ошибками.')
                     replacer(filename, errors + filename)
 
-                # Если файл уже разложен на формат SRA3 или SRA3+, отправляем его в папку "готово".
+                # Проверка trimbox-a документа:
+                # 1) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox соответствует -
+                #    подписи f_canvas_print_size, отправляем его в папку "готово".
                 case _, _, f_canvas_print_size, _ \
-                    if (
-                               f_canvas_print_size == 'SRA3' and \
-                               get_page_height(pdf_file) in [320, 450] and get_page_width(pdf_file) in [320, 450]
-                       ) or (
-                               f_canvas_print_size == 'SRA3+' and \
-                               get_page_height(pdf_file) in [330, 487] and get_page_width(pdf_file) in [330, 487]
+                    if get_page_height(pdf_file) != get_page_width(pdf_file) \
+                       and (
+                               (
+                                       f_canvas_print_size == 'SRA3' and \
+                                       get_page_height(pdf_file) in [320, 450] and \
+                                       get_page_width(pdf_file) in [320, 450]
+                               )
+                               or \
+                               (
+                                       f_canvas_print_size == 'SRA3+' and \
+                                       get_page_height(pdf_file) in [330, 487] and \
+                                       get_page_width(pdf_file) in [330, 487]
+                               )
                        ):
                     print(f'Файл {filename} перенаправляю сразу в папку с готовыми макетами.')
                     replacer(filename, output + filename)
+
+                # 2) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox НЕ соответствует -
+                #    подписи f_canvas_print_size, отправляем его в папку с ошибками.
+                case _, _, f_canvas_print_size, _ \
+                    if get_page_height(pdf_file) != get_page_width(pdf_file) \
+                       and (
+                               (
+                                       f_canvas_print_size == 'SRA3' and \
+                                       get_page_height(pdf_file) in [330, 487] and \
+                                       get_page_width(pdf_file) in [330, 487]
+                               )
+                               or \
+                               (
+                                       f_canvas_print_size == 'SRA3+' and \
+                                       get_page_height(pdf_file) in [320, 450] and \
+                                       get_page_width(pdf_file) in [320, 450]
+                               )
+                       ):
+                    print(f'Файл {filename} направляю в папку с ошибками.')
+                    replacer(filename, errors + filename)
 
                 # Всё что идёт в viz_4+0
                 case f_size, f_colorify, f_canvas_print_size, _ \
