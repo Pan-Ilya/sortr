@@ -108,6 +108,8 @@ while True:
     try:
         for filename in get_all_filenames_in_directory(from_path):
             filename_params = get_params_from_filename(filename)
+            # filename_params = [f_size, f_colorify, f_quantity, f_canvas_print_siz, extra]
+            print(filename_params)
 
             if os.path.isfile(filename):
                 pdf_file = PdfReader(filename)
@@ -117,8 +119,15 @@ while True:
                 pages = 0
 
             match filename_params:
+                # Проверка на виды.
+                case _, f_colorify, f_quantity, _, _ \
+                    if f_colorify in ['1+0', '4+0', '5+0'] and pages == int(f_quantity) or \
+                       f_colorify in ['1+1', '4+4', '5+5'] and pages == 2 * int(f_quantity):
+                    print('Отработал сценарий с виадами.')
+                    replacer(filename, output + filename)
+
                 # Начальная проверка на кол-во страниц документа и его цветность.
-                case _, f_colorify, _, _ \
+                case _, f_colorify, _, _, _ \
                     if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
                        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
                     print(f'{filename} направляю в папку с ошибками.\nЦветность документа не соответствует подписи.\n')
@@ -127,7 +136,7 @@ while True:
                 # Проверка trimbox-a документа:
                 # 1) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox соответствует -
                 #    подписи f_canvas_print_size, отправляем его в папку "готово".
-                case _, _, f_canvas_print_size, _ \
+                case _, _, _, f_canvas_print_size, _ \
                     if get_page_height(pdf_file) != get_page_width(pdf_file) \
                        and (
                                (
@@ -147,7 +156,7 @@ while True:
 
                 # 2) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox НЕ соответствует -
                 #    подписи f_canvas_print_size, отправляем его в папку с ошибками.
-                case _, _, f_canvas_print_size, _ \
+                case _, _, _, f_canvas_print_size, _ \
                     if get_page_height(pdf_file) != get_page_width(pdf_file) \
                        and (
                                (
@@ -167,43 +176,43 @@ while True:
                     replacer(filename, errors + filename)
 
                 # Всё что идёт в viz_4+0
-                case f_size, f_colorify, f_canvas_print_size, _ \
+                case f_size, f_colorify, _, f_canvas_print_size, _ \
                     if (f_size in ['89x49', '49x89'] and f_colorify in ['1+0', '4+0', '5+0'] and
                         f_canvas_print_size == 'SRA3'):
                     replacer(filename, input_viz_4_0 + filename)
 
                 # Всё что идёт в viz_4+4
-                case f_size, f_colorify, f_canvas_print_size, _ \
+                case f_size, f_colorify, _, f_canvas_print_size, _ \
                     if (f_size in ['89x49', '49x89'] and f_colorify in ['1+1', '4+4', '5+5'] and
                         f_canvas_print_size == 'SRA3'):
                     replacer(filename, input_viz_4_4 + filename)
 
                 # Всё что идёт сразу в папку "готово" - output
-                case f_size, f_colorify, f_canvas_print_size, _ \
+                case f_size, f_colorify, _, f_canvas_print_size, _ \
                     if (f_size in ['487x330', '330x487'] and f_canvas_print_size == 'SRA3+') or \
                        (f_size in ['450x320', '320x450'] and f_canvas_print_size == 'SRA3'):
                     # print(f'Файл {filename} направляю в папку с готовыми макетами.')
                     replacer(filename, output + filename)
 
                 # Всё что идёт в SRA3_universal_1_rez
-                case f_size, f_colorify, f_canvas_print_size, extra \
+                case f_size, f_colorify, _, f_canvas_print_size, extra \
                     if (f_size not in ['450x320', '320x450', '487x330', '330x487'] and
                         f_canvas_print_size == 'SRA3' and extra):
                     replacer(filename, input_SRA3_1_rez + filename)
 
                 # Всё что идёт в SRA3+_universal_1_rez
-                case f_size, f_colorify, f_canvas_print_size, extra \
+                case f_size, f_colorify, _, f_canvas_print_size, extra \
                     if (f_size not in ['450x320', '320x450', '487x330', '330x487'] and
                         f_canvas_print_size == 'SRA3+' and extra):
                     replacer(filename, input_SRA3_plus_1_rez + filename)
 
                 # Всё что идёт в SRA3_universal
-                case f_size, f_colorify, f_canvas_print_size, _ \
+                case f_size, f_colorify, _, f_canvas_print_size, _ \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3':
                     replacer(filename, input_SRA3 + filename)
 
                 # Всё что идёт в SRA3+_universal
-                case f_size, f_colorify, f_canvas_print_size, _ \
+                case f_size, f_colorify, _, f_canvas_print_size, _ \
                     if f_size not in ['450x320', '320x450', '487x330', '330x487'] and f_canvas_print_size == 'SRA3+':
                     replacer(filename, input_SRA3_plus + filename)
 
