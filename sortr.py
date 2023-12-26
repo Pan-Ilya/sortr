@@ -63,11 +63,12 @@ def get_all_filenames_in_directory(path: str) -> list[str]:
 def get_params_from_filename(filename: str) -> list[str]:
     right_filename_pattern = r'(?i).*?(?P<size>\d+[xх]\d+).*?' \
                              r'(?P<color>\d\+\d).*?' \
+                             r'(?P<quantity>\d*)?' \
                              r'(?P<canvas_size>SRA\d\+?).*?' \
                              r'(?P<extra>--)?(?:$|\.)'
 
-    file_size, file_colorify, file_canvas_print_siz, extra = re.findall(right_filename_pattern, filename)[0]
-    return [file_size, file_colorify, file_canvas_print_siz, extra]
+    f_size, f_colorify, f_quantity, f_canvas_print_siz, extra = re.findall(right_filename_pattern, filename)[0]
+    return [f_size, f_colorify, f_quantity, f_canvas_print_siz, extra]
 
 
 def replacer(filename: str, destination: str) -> None:
@@ -161,7 +162,8 @@ while True:
                                        get_page_width(pdf_file) in [320, 450]
                                )
                        ):
-                    print(f'{filename} направляю в папку с ошибками.\nТрим-бокс текущей раскладки не соответствует подписи документа.\n')
+                    print(
+                        f'{filename} направляю в папку с ошибками.\nТрим-бокс текущей раскладки не соответствует подписи документа.\n')
                     replacer(filename, errors + filename)
 
                 # Всё что идёт в viz_4+0
