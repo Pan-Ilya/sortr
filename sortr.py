@@ -5,6 +5,7 @@ import time
 from typing import Any
 from PyPDF2 import PdfReader
 from decimal import Decimal
+import funcs
 
 
 # 1) Open settings.txt file to get hot folder's paths.
@@ -120,18 +121,16 @@ while True:
 
             match filename_params:
                 # Проверка на виды.
-                case _, f_colorify, f_quantity, _, _ \
-                    if f_colorify in ['1+0', '4+0', '5+0'] and pages == int(f_quantity) or \
-                       f_colorify in ['1+1', '4+4', '5+5'] and pages == 2 * int(f_quantity):
+                case _, f_colorify, f_quantity, _, _ if funcs.vids_detected(f_colorify, f_quantity, pages):
                     print('Отработал сценарий с виадами.')
                     replacer(filename, output + filename)
 
                 # Начальная проверка на кол-во страниц документа и его цветность.
-                case _, f_colorify, _, _, _ \
-                    if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
-                       f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
-                    print(f'{filename} направляю в папку с ошибками.\nЦветность документа не соответствует подписи.\n')
-                    replacer(filename, errors + filename)
+                # case _, f_colorify, _, _, _ \
+                #     if f_colorify in ['1+0', '4+0', '5+0'] and pages not in [0, 1] or \
+                #        f_colorify in ['1+1', '4+4', '5+5'] and pages not in [0, 2]:
+                #     print(f'{filename} направляю в папку с ошибками.\nЦветность документа не соответствует подписи.\n')
+                #     replacer(filename, errors + filename)
 
                 # Проверка trimbox-a документа:
                 # 1) Если файл уже разложен на формат SRA3 или SRA3+ и его trimbox соответствует -
