@@ -69,6 +69,7 @@ def get_params_from_filename(filename: str) -> list[str]:
                              r'(?P<extra>--)?(?:$|\.)'
 
     f_size, f_colorify, f_quantity, f_canvas_print_siz, extra = re.findall(right_filename_pattern, filename)[0]
+    f_quantity = int(f_quantity) if f_quantity.isdigit() else 1
     return [f_size, f_colorify, f_quantity, f_canvas_print_siz, extra]
 
 
