@@ -3,27 +3,30 @@ from decimal import Decimal
 from PyPDF2 import PdfReader
 
 
-def get_page_size(filename: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | None:
+def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | None:
     """ Если все страницы документа имеют одинаковую длину и ширину - возвращает указанный параметр
     height или width документа. """
 
-    if not isinstance(filename, PdfReader):
+    if not isinstance(file, PdfReader):
         return None
 
-    all_document_heights = [page.trimbox.height // Decimal(2.83) for page in filename.pages]
-    all_document_widths = [page.trimbox.width // Decimal(2.83) for page in filename.pages]
+    all_document_heights = [int(page.trimbox.height // Decimal(2.83)) for page in file.pages]
+    all_document_widths = [int(page.trimbox.width // Decimal(2.83)) for page in file.pages]
 
-    all_heights_equal = all(map(lambda x: x == all_document_heights[0], all_document_heights))
-    all_widths_equal = all(map(lambda x: x == all_document_widths[0], all_document_widths))
+    document_width = all_document_widths[0]
+    document_height = all_document_heights[0]
 
-    if not all_heights_equal and not all_widths_equal:
+    all_heights_equal = all(map(lambda x: x == document_height, all_document_heights))
+    all_widths_equal = all(map(lambda x: x == document_width, all_document_widths))
+
+    if not (all_heights_equal and all_widths_equal):
         return None
-    elif height:
-        return all_document_heights[0]
-    elif width:
-        return all_document_widths[0]
     elif height and width:
-        return sorted([all_document_heights[0], all_document_widths[0]])
+        return sorted([document_height, document_width])
+    elif height:
+        return document_height
+    elif width:
+        return document_width
     else:
         return None
 
