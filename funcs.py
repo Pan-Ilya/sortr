@@ -33,6 +33,10 @@ ALLOWED_VIZ_SIZES = {
 }
 
 
+def get_current_time():
+    return time.strftime("%H:%M:%S")
+
+
 def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | None:
     """ Если все страницы документа имеют одинаковую длину и ширину - возвращает указанный параметр
     height или width документа. """
