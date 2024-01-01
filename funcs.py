@@ -9,13 +9,28 @@ from decimal import Decimal
 COLOR_4_0 = ['1+0', '4+0', '5+0']
 COLOR_4_4 = ['1+1', '4+4', '5+5']
 
-SRA3 = (['450x320', '320x450'], [320, 450])
-SRA3_PLUS = (['487x330', '330x487'], [330, 487])
+SRA3 = {
+    'name': 'SRA3',
+    'file_signature': ['450x320', '320x450'],
+    'size_value': [320, 450],
+    'height': 320,
+    'width': 450
+}
 
-ALLOWED_VIZ_SIZES = (['89x49', '49x89', '90x50', '50x90', '54x94', '94x54', '53x93', '93x53'], \
-                     [[49, 89], [50, 90], [53, 93], [54, 94]])
+SRA3_PLUS = {
+    'name': 'SRA3+',
+    'file_signature': ['487x330', '330x487'],
+    'size_value': [330, 487],
+    'height': 330,
+    'width': 487
+}
 
 PAGE_SIZE_DIAPASON = 10
+
+ALLOWED_VIZ_SIZES = {
+    'file_signature': ['89x49', '49x89', '90x50', '50x90'],
+    'size_value': [[49, 89], [50, 90], [53, 93], [54, 94]],
+}
 
 
 def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | None:
@@ -44,6 +59,25 @@ def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = F
         return document_width
     else:
         return None
+
+
+def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) -> bool:
+    """ Проверяет TrimBox .pdf файла и его подпись, на основании чего делается вывод о положении документа
+    (требуется горизонтальное расположение). """
+
+    if file_print_sheet_size == SRA3['name'] and \
+            get_page_size(file) == SRA3['size_value'] and get_page_size(file, height=True) != SRA3['height'] \
+            or \
+            file_print_sheet_size == SRA3_PLUS['name'] and \
+            get_page_size(file) == SRA3_PLUS['size_value'] and get_page_size(file, height=True) != SRA3_PLUS['height']:
+        return False
+    return True
+
+
+def have_BleedBox():
+    """ Проверяет документ на наличие BleedBox. """
+
+    pass
 
 
 def check_colorify(f_colorify: str, f_quantity: int, pages: int) -> bool:
@@ -82,17 +116,17 @@ def get_params_from_filename(filename: str) -> list[str | int]:
      12-05_1108608_2v_160_120x45_4+0_350mat_lamGL1+1_2SRA3_po_160_listov.pdf """
 
     right_filename_pattern = r'(?i).*?' \
-                             r'(?P<size>\d+[xх]\d+).*?' \
+                             r'(?P<f_product_size>\d+[xх]\d+).*?' \
                              r'(?P<color>\d\+\d).*?' \
                              r'(?P<quantity>\d*)?' \
                              r'(?P<print_sheet_size>SRA\d\+?).*?' \
                              r'(?P<extra>--)?' \
                              r'(?:$|\.)'
 
-    f_size, f_colorify, f_quantity, f_print_sheet_size, extra = re.findall(right_filename_pattern, filename)[0]
+    f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra = re.findall(right_filename_pattern, filename)[0]
     f_quantity = int(f_quantity) if f_quantity.isdigit() else 1
 
-    return [f_size, f_colorify, f_quantity, f_print_sheet_size, extra]
+    return [f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra]
 
 
 def replacer(filename: str, destination: str) -> None:
@@ -119,6 +153,77 @@ def replacer(filename: str, destination: str) -> None:
 def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует подписи размера готового изделия. """
 
-    if get_page_size(file) == sorted(int(x) for x in product_size.split('x')):
+    return get_page_size(file) == sorted(int(x) for x in product_size.split('x'))
+
+
+def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
+    """ Возвращает True, если TrimBox .pdf файла входит в множество допустимых размеров визитки 90х50 мм. """
+
+    if product_size in ALLOWED_VIZ_SIZES['size_signature'] and \
+            get_page_size(file) in ALLOWED_VIZ_SIZES['size_value']:
         return True
     return False
+
+
+def TrimBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+    """ Возвращает True, если TrimBox .pdf файла соответствует размеру 450х320 мм. """
+
+    if file_print_sheet_size == SRA3['name'] and \
+            SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height'] and \
+            SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width']:
+        return True
+    return False
+
+
+def TrimBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+    """ Возвращает True, если TrimBox .pdf файла соответствует размеру 487x330 мм. """
+
+    if file_print_sheet_size == SRA3_PLUS['name'] and \
+            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3_PLUS['height'] and \
+            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3_PLUS['width']:
+        return True
+    return False
+
+
+def go_to_SRA3_universal(product_size: str, file_print_sheet_size: str, extra: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена SRA3_universal. """
+
+    return product_size not in ALLOWED_VIZ_SIZES['file_signature'] and \
+        file_print_sheet_size == SRA3['name'] and \
+        not extra
+
+
+def go_to_SRA3_universal_1_rez(product_size: str, file_print_sheet_size: str, extra: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена SRA3_universal_1_rez. """
+
+    return product_size not in ALLOWED_VIZ_SIZES['file_signature'] and \
+        file_print_sheet_size == SRA3['name'] and \
+        extra
+
+
+def go_to_SRA3_PLUS_universal(file_print_sheet_size: str, extra: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена SRA3+_universal. """
+
+    return file_print_sheet_size == SRA3_PLUS['name'] and not extra
+
+
+def go_to_SRA3_PLUS_universal_1_rez(file_print_sheet_size: str, extra: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена SRA3+_universal_1_rez. """
+
+    return file_print_sheet_size == SRA3_PLUS['name'] and extra
+
+
+def go_to_viz_4_0(product_size: str, file_colorify: str, file_print_sheet_size: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена viz_4+0. """
+
+    return product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
+        file_colorify in COLOR_4_0 and \
+        file_print_sheet_size == SRA3['name']
+
+
+def go_to_viz_4_4(product_size: str, file_colorify: str, file_print_sheet_size: str) -> bool:
+    """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена viz_4+4. """
+
+    return product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
+        file_colorify in COLOR_4_4 and \
+        file_print_sheet_size == SRA3['name']
