@@ -51,7 +51,7 @@ while True:
             else:
                 pdf_file = None
                 pages = 0
-                print(f'{filename}\nОбъект не является файлом, направляю в папку с ошибками.\n')
+                print(f'[{funcs.get_current_time()}]   {filename}\nОбъект не является файлом, направляю в папку с ошибками.\n')
                 funcs.replacer(filename, errors + filename)
                 continue
 
@@ -64,7 +64,7 @@ while True:
 
                 # Проверка цветности документа.
                 case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
-                    print(f'{filename}\nЦветность документа не соответствует подписи.\n')
+                    print(f'[{funcs.get_current_time()}]   {filename}\nЦветность документа не соответствует подписи.\n')
                     funcs.replacer(filename, errors + filename)
 
                 # Проверка размера документа.
@@ -74,14 +74,14 @@ while True:
                         funcs.TrimBox_equal_vizitka_90x50_size(pdf_file, f_product_size) or \
                         funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
                         funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
-                    print(f'''{filename}
+                    print(f'''[{funcs.get_current_time()}]   {filename}
                     TrimBox документа не соответствует либо подписи раскладки либо подписи размера.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # Проверка раскладки на поворот.
                 case _, _, _, f_print_sheet_size, _, \
                     if not funcs.SRA3_or_SRA3_PLUS_horizontal(pdf_file, f_print_sheet_size):
-                    print(f'{filename}\nФайл формата {f_print_sheet_size} вертикальный.\n')
+                    print(f'[{funcs.get_current_time()}]   {filename}\nФайл формата {f_print_sheet_size} вертикальный.\n')
                     funcs.replacer(filename, errors + filename)
 
                 # ======================================= В папку output. =============================================
@@ -127,20 +127,20 @@ while True:
 
                 # Все остальные случаи идут в папку с ошибками. Wildcard.
                 case _:
-                    print(f'[E] Файл {filename} направляю в папку с ошибками.\n')
+                    print(f'[{funcs.get_current_time()}][E] Файл {filename}\nНаправляю в папку с ошибками.\n')
                     funcs.replacer(filename, errors + filename)
 
     except IndexError:
-        print(f'Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
+        print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
         funcs.replacer(filename, errors + filename)
     except Exception as E:
         print(E)
-        print('Произошла неожиданная ошибка. Повторяю попытку.')
+        print(f'[{funcs.get_current_time()}]   Произошла неожиданная ошибка. Повторяю попытку.')
     finally:
         time.sleep(3)
 
 # TODO:
-#  - Добавить время для информационных принтов.                       +++
+#  - Добавить время для информационных принтов.                       - done
 #  - Что делать с папками:
 #   -- не выполнять проверку, сразу сортировать по имени
 #   -- либо отправлять в папку с ошибками.                            +++
