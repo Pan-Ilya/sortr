@@ -36,7 +36,7 @@ def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = F
 
     if not (all_heights_equal and all_widths_equal):
         return None
-    elif height and width:
+    elif height and width or not (height or width):
         return sorted([document_height, document_width])
     elif height:
         return document_height
@@ -114,3 +114,11 @@ def replacer(filename: str, destination: str) -> None:
 
     else:
         raise NotADirectoryError('replacer function Error!')
+
+
+def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
+    """ Возвращает True, если TrimBox .pdf файла соответствует подписи размера готового изделия. """
+
+    if get_page_size(file) == sorted(int(x) for x in product_size.split('x')):
+        return True
+    return False
