@@ -51,7 +51,8 @@ while True:
             else:
                 pdf_file = None
                 pages = 0
-                print(f'[{funcs.get_current_time()}]   {filename}\nОбъект не является файлом, направляю в папку с ошибками.\n')
+                print(f'''[{funcs.get_current_time()}]   {filename}'
+                      \rОбъект не является файлом, направляю в папку с ошибками.\n''')
                 funcs.replacer(filename, errors + filename)
                 continue
 
@@ -75,13 +76,15 @@ while True:
                         funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
                         funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                    TrimBox документа не соответствует либо подписи раскладки либо подписи размера.\n''')
+                        \rTrimBox документа не соответствует либо формату раскладки {f_print_sheet_size}, либо \
+размеру подписи {f_product_size}.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # Проверка раскладки на поворот.
                 case _, _, _, f_print_sheet_size, _, \
                     if not funcs.SRA3_or_SRA3_PLUS_horizontal(pdf_file, f_print_sheet_size):
-                    print(f'[{funcs.get_current_time()}]   {filename}\nФайл формата {f_print_sheet_size} вертикальный.\n')
+                    print(f'''[{funcs.get_current_time()}]   {filename}
+                    \rФайл формата {f_print_sheet_size} вертикальный.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # ======================================= В папку output. =============================================
@@ -127,7 +130,7 @@ while True:
 
                 # Все остальные случаи идут в папку с ошибками. Wildcard.
                 case _:
-                    print(f'[{funcs.get_current_time()}][E] Файл {filename}\nНаправляю в папку с ошибками.\n')
+                    print(f'[{funcs.get_current_time()}][E]   {filename}\nНаправляю в папку с ошибками.\n')
                     funcs.replacer(filename, errors + filename)
 
     except IndexError:
@@ -140,7 +143,6 @@ while True:
         time.sleep(3)
 
 # TODO:
-#  - Добавить время для информационных принтов.                       - done
 #  - Что делать с папками:
 #   -- не выполнять проверку, сразу сортировать по имени
 #   -- либо отправлять в папку с ошибками.                            +++
