@@ -60,8 +60,9 @@ while True:
                 # ======================================= В папку errors. =============================================
 
                 # Проверка на наличие BleedBox.
-                case _, _, _, _, _, if funcs.have_BleedBox():
-                    pass
+                case _ if not funcs.check_BleedBox(pdf_file):
+                    print(f'[{funcs.get_current_time()}]   {filename}\nBleedBox документа отличается от TrimBox.')
+                    funcs.replacer(filename, errors + filename)
 
                 # Проверка цветности документа.
                 case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
