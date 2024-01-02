@@ -78,10 +78,10 @@ def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) ->
     return True
 
 
-def have_BleedBox():
-    """ Проверяет документ на наличие BleedBox. """
+def check_BleedBox(file: PdfReader) -> bool:
+    """ Выполняется проверка равенства BleedBox == TrimBox каждой страницы документа. """
 
-    pass
+    return all(page.trimbox == page.bleedbox for page in file.pages)
 
 
 def check_colorify(f_colorify: str, f_quantity: int, pages: int) -> bool:
