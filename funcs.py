@@ -163,7 +163,7 @@ def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
 def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла входит в множество допустимых размеров визитки 90х50 мм. """
 
-    if product_size in ALLOWED_VIZ_SIZES['size_signature'] and \
+    if product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
             get_page_size(file) in ALLOWED_VIZ_SIZES['size_value']:
         return True
     return False
