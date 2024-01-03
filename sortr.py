@@ -59,11 +59,6 @@ while True:
             match filename_params:
                 # ======================================= В папку errors. =============================================
 
-                # Проверка на наличие BleedBox.
-                case _ if not funcs.check_BleedBox(pdf_file):
-                    print(f'[{funcs.get_current_time()}]   {filename}\nBleedBox документа отличается от TrimBox.')
-                    funcs.replacer(filename, errors + filename)
-
                 # Проверка цветности документа.
                 case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
                     print(f'[{funcs.get_current_time()}]   {filename}\nЦветность документа не соответствует подписи.\n')
@@ -117,7 +112,7 @@ while True:
                 # В папку с экшеном SRA3+_universal_1_rez
                 case _, _, _, f_print_sheet_size, extra \
                     if funcs.go_to_SRA3_PLUS_universal_1_rez(f_print_sheet_size, extra):
-                    funcs.replacer(filename, input_SRA3_plus + filename)
+                    funcs.replacer(filename, input_SRA3_plus_1_rez + filename)
 
                 # В папку с экшеном viz_4+0
                 case f_product_size, f_colorify, _, f_print_sheet_size, _, \
