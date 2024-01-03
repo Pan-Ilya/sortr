@@ -37,12 +37,12 @@ def get_current_time():
     return time.strftime("%H:%M:%S")
 
 
-def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | None:
+def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | bool:
     """ Если все страницы документа имеют одинаковую длину и ширину - возвращает указанный параметр
     height или width документа. """
 
     if not isinstance(file, PdfReader):
-        return None
+        return False
 
     all_document_heights = [int(page.trimbox.height // Decimal(2.83)) for page in file.pages]
     all_document_widths = [int(page.trimbox.width // Decimal(2.83)) for page in file.pages]
@@ -54,7 +54,7 @@ def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = F
     all_widths_equal = all(map(lambda x: x == document_width, all_document_widths))
 
     if not (all_heights_equal and all_widths_equal):
-        return None
+        return False
     elif height and width or not (height or width):
         return sorted([document_height, document_width])
     elif height:
@@ -62,7 +62,7 @@ def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = F
     elif width:
         return document_width
     else:
-        return None
+        return False
 
 
 def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) -> bool:
