@@ -67,9 +67,9 @@ while True:
                 # Проверка размера документа.
                 case f_product_size, _, _, f_print_sheet_size, _, \
                     if not (
-                        funcs.TrimBox_equal_product_size(pdf_file, f_product_size) or \
-                        funcs.TrimBox_equal_vizitka_90x50_size(pdf_file, f_product_size) or \
-                        funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
+                        funcs.TrimBox_equal_product_size(pdf_file, f_product_size) or
+                        funcs.TrimBox_equal_vizitka_90x50_size(pdf_file, f_product_size) or
+                        funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
                         funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                         \rTrimBox документа не соответствует либо формату раскладки {f_print_sheet_size}, либо \
@@ -79,7 +79,7 @@ while True:
                 # Проверка раскладки на поворот.
                 case _, _, _, f_print_sheet_size, _, \
                     if (
-                               funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
+                               funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
                                funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)
                        ) and not funcs.SRA3_or_SRA3_PLUS_horizontal(pdf_file, f_print_sheet_size):
                     print(f'''[{funcs.get_current_time()}]   {filename}

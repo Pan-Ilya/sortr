@@ -80,7 +80,7 @@ def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) ->
             return False
 
         if page.rotation % 90 == 0 and page.rotation % 180 != 0 and \
-                (SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width'] or \
+                (SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width'] or
                  SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3_PLUS['width']):
             return False
 
@@ -162,8 +162,9 @@ def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
 
     product_size_value = sorted(int(x) for x in product_size.split('x'))
     page_size = get_page_size(file)
-
-    return product_size_value in [page_size, [x + VILETI for x in page_size]]
+    if type(page_size) is list:
+        return product_size_value in [page_size, [x + VILETI for x in page_size]]
+    return False
 
 
 def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
