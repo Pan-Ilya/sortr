@@ -70,13 +70,10 @@ def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) ->
     """ Проверяет TrimBox .pdf файла и его подпись, на основании чего делается вывод о положении документа
     (требуется горизонтальное расположение). """
 
-    # if not (TrimBox_equal_SRA3_PLUS_size(file, file_print_sheet_size) or \
-    #         TrimBox_equal_SRA3_size(file, file_print_sheet_size)):
-    #     return True
-
     for page in file.pages:
         if page.rotation % 180 == 0 and not \
-                SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height']:
+                (SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height'] or
+                 SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3_PLUS['height']):
             return False
 
         if page.rotation % 90 == 0 and page.rotation % 180 != 0 and \
@@ -163,7 +160,7 @@ def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
     product_size_value = sorted(int(x) for x in product_size.split('x'))
     page_size = get_page_size(file)
     if type(page_size) is list:
-        return product_size_value in [page_size, [x + VILETI for x in page_size]]
+        return product_size_value in [page_size, [x - VILETI for x in page_size]]
     return False
 
 
@@ -179,13 +176,23 @@ def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool
 def TrimBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует размеру 450х320 мм. """
 
-    return file_print_sheet_size == SRA3['name'] and get_page_size(file) == SRA3['size_value']
+    if file_print_sheet_size == SRA3['name'] and \
+            SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3['height'] and \
+            SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3['width']:
+        return True
+
+    return False
 
 
 def TrimBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует размеру 487x330 мм. """
 
-    return file_print_sheet_size == SRA3_PLUS['name'] and get_page_size(file) == SRA3_PLUS['size_value']
+    if file_print_sheet_size == SRA3_PLUS['name'] and \
+            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3_PLUS['height'] and \
+            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3_PLUS['width']:
+        return True
+
+    return False
 
 
 def go_to_SRA3_universal(product_size: str, file_print_sheet_size: str, extra: str) -> bool:
