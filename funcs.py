@@ -72,13 +72,15 @@ def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) ->
 
     for page in file.pages:
         if page.rotation % 180 == 0 and not \
-                (SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height'] or
-                 SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3_PLUS['height']):
+                (SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height'] + VILETI or
+                 SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3_PLUS[
+                     'height'] + VILETI):
             return False
 
         if page.rotation % 90 == 0 and page.rotation % 180 != 0 and \
-                (SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width'] or
-                 SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3_PLUS['width']):
+                (SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width'] + VILETI or
+                 SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3_PLUS[
+                     'width'] + VILETI):
             return False
 
     return True
@@ -157,11 +159,11 @@ def replacer(filename: str, destination: str) -> None:
 def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует подписи размера готового изделия. """
 
+    product_size = ''.join('x' if char.isalpha() else char for char in product_size)
     product_size_value = sorted(int(x) for x in product_size.split('x'))
     page_size = get_page_size(file)
-    if type(page_size) is list:
-        return product_size_value in [page_size, [x - VILETI for x in page_size]]
-    return False
+
+    return page_size and product_size_value in [page_size, [x - VILETI for x in page_size]]
 
 
 def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
@@ -176,20 +178,28 @@ def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool
 def TrimBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует размеру 450х320 мм. """
 
-    if file_print_sheet_size == SRA3['name'] and \
-            SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3['height'] and \
-            SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3['width']:
+    if file_print_sheet_size == SRA3['name'] and get_page_size(file) and \
+            SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3['height'] + VILETI and \
+            SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3['width'] + VILETI:
         return True
 
     return False
 
 
+# def is_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+#     use document CropBox
+#     pass
+#
+# def is_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+#     use document CropBox
+#     pass
+
 def TrimBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Возвращает True, если TrimBox .pdf файла соответствует размеру 487x330 мм. """
 
-    if file_print_sheet_size == SRA3_PLUS['name'] and \
-            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3_PLUS['height'] and \
-            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3_PLUS['width']:
+    if file_print_sheet_size == SRA3_PLUS['name'] and get_page_size(file) and \
+            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3_PLUS['height'] + VILETI and \
+            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3_PLUS['width'] + VILETI:
         return True
 
     return False
