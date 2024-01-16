@@ -30,73 +30,12 @@ VILETI = 4
 
 ALLOWED_VIZ_SIZES = {
     'file_signature': ['89x49', '49x89', '90x50', '50x90'],
-    'size_value': [[49, 89], [50, 90], [53, 93], [54, 94]],
+    'size_value': [[53, 93], [54, 94]],
 }
 
 
 def get_current_time():
     return time.strftime("%H:%M:%S")
-
-
-def get_page_size(file: [PdfReader | Any], height: bool = False, width: bool = False) -> int | list[int] | bool:
-    """ Если все страницы документа имеют одинаковую длину и ширину - возвращает указанный параметр
-    height или width документа. """
-
-    if not isinstance(file, PdfReader):
-        return False
-
-    all_document_heights = [int(page.trimbox.height // Decimal(2.83)) for page in file.pages]
-    all_document_widths = [int(page.trimbox.width // Decimal(2.83)) for page in file.pages]
-
-    document_width = all_document_widths[0]
-    document_height = all_document_heights[0]
-
-    all_heights_equal = all(map(lambda x: x == document_height, all_document_heights))
-    all_widths_equal = all(map(lambda x: x == document_width, all_document_widths))
-
-    if not (all_heights_equal and all_widths_equal):
-        return False
-    elif height and width or not (height or width):
-        return sorted([document_height, document_width])
-    elif height:
-        return document_height
-    elif width:
-        return document_width
-    else:
-        return False
-
-
-def SRA3_or_SRA3_PLUS_horizontal(file: PdfReader, file_print_sheet_size: str) -> bool:
-    """ Проверяет TrimBox .pdf файла и его подпись, на основании чего делается вывод о положении документа
-    (требуется горизонтальное расположение). """
-
-    for page in file.pages:
-        if page.rotation % 180 == 0 and not \
-                (SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3['height'] + VILETI or
-                 SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file, height=True) <= SRA3_PLUS[
-                     'height'] + VILETI):
-            return False
-
-        if page.rotation % 90 == 0 and page.rotation % 180 != 0 and \
-                (SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3['width'] + VILETI or
-                 SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file, width=True) <= SRA3_PLUS[
-                     'width'] + VILETI):
-            return False
-
-    return True
-
-
-def check_colorify(f_colorify: str, f_quantity: int, pages: int) -> bool:
-    """ Проверка цветности документа, так же учитываются виды. """
-
-    if (
-            f_colorify in COLOR_4_0 and pages == f_quantity
-    ) or (
-            f_colorify in COLOR_4_4 and pages == f_quantity * 2
-    ):
-        return True
-
-    return False
 
 
 def exit_program(time_sleep: int, exit_code: int) -> None:
@@ -156,55 +95,146 @@ def replacer(filename: str, destination: str) -> None:
         raise NotADirectoryError('replacer function Error!')
 
 
-def TrimBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
-    """ Возвращает True, если TrimBox .pdf файла соответствует подписи размера готового изделия. """
+def check_colorify(f_colorify: str, f_quantity: int, pages: int) -> bool:
+    """ Проверка цветности документа, так же учитываются виды. """
+
+    if f_colorify in COLOR_4_4 and pages == f_quantity * 2 or \
+            f_colorify in COLOR_4_0 and pages == f_quantity:
+        return True
+
+    return False
+
+
+def decimal_to_mm(size: Decimal) -> int:
+    """ Преобразуем inch в целочисленное значение метрической системы. """
+
+    return int(size // Decimal(2.83))
+
+
+def product_size_to_mm(product_size: str) -> list[int]:
+    """ Возвращает список целочисленных значений ВхШ страницы документа. Результат отсортирован по возрастанию. """
 
     product_size = ''.join('x' if char.isalpha() else char for char in product_size)
-    product_size_value = sorted(int(x) for x in product_size.split('x'))
-    page_size = get_page_size(file)
 
-    return page_size and product_size_value in [page_size, [x - VILETI for x in page_size]]
+    return sorted([int(size) for size in product_size.split('x')])
 
 
-def TrimBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
-    """ Возвращает True, если TrimBox .pdf файла входит в множество допустимых размеров визитки 90х50 мм. """
+def all_pages_has_same_size(file: PdfReader) -> bool:
+    """ Отвечает на вопрос равенства ВхШ всех страниц документа без учёта поворота. """
 
-    if product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
-            get_page_size(file) in ALLOWED_VIZ_SIZES['size_value']:
+    if not isinstance(file, PdfReader):
+        return False
+
+    all_pages_sizes = list()
+    for page in file.pages:
+        page_size = [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
+        page_size.sort()
+        page_size.append(all_pages_sizes)
+
+    return all(map(lambda x: x == all_pages_sizes[0], all_pages_sizes))
+
+
+def get_current_page_size(page) -> list[int]:
+    """ Возвращает список из фактической (видимой) высоты и ширины текущей страницы документа. """
+
+    return [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
+
+
+def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
+    """ Выполняет проверку на горизонтальное положение всех страниц документа. """
+
+    if product_size in ALLOWED_VIZ_SIZES['file_signature']:
+        small_product_side, big_product_side = 50, 90
+    else:
+        small_product_side, big_product_side = product_size_to_mm(product_size)
+
+    for page in file.pages:
+        file_height, file_width = get_current_page_size(page)
+
+        if page.rotation % 180 == 0 and not \
+                file_height <= small_product_side + VILETI:
+            return False
+
+        if page.rotation % 90 == 0 and page.rotation % 180 != 0 and not \
+                file_width <= small_product_side + VILETI:
+            return False
+
+    return True
+
+
+def all_pages_are_portrait(file: PdfReader, product_size: str) -> bool:
+    """ Выполняет проверку на вертикальное положение всех страниц документа. """
+
+    if product_size in ALLOWED_VIZ_SIZES['file_signature']:
+        small_product_side, big_product_side = 50, 90
+    else:
+        small_product_side, big_product_side = product_size_to_mm(product_size)
+
+    for page in file.pages:
+        file_height, file_width = get_current_page_size(page)
+
+        if page.rotation % 180 == 0 and not \
+                file_width <= small_product_side + VILETI:
+            return False
+
+        if page.rotation % 90 == 0 and page.rotation % 180 != 0 and not \
+                file_height <= small_product_side + VILETI:
+            return False
+
+    return True
+
+
+def CropBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
+    """ Фактический (видимый) размер документа равен размеру готового изделия.
+    Размер готового изделия указан в подписи .pdf документа. """
+
+    if not all_pages_has_same_size(file):
+        return False
+
+    pure_page_size_values = sorted(side_size - VILETI for side_size in get_current_page_size(file.pages[0]))
+    return pure_page_size_values == product_size_to_mm(product_size)
+
+
+def CropBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
+    """ Фактический (видимый) размер документа равен размеру визитки (диапазон значений). """
+
+    if not all_pages_has_same_size(file):
+        return False
+
+    elif product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
+            sorted(get_current_page_size(file.pages[0])) in ALLOWED_VIZ_SIZES['size_value']:
         return True
-    return False
 
 
-def TrimBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
-    """ Возвращает True, если TrimBox .pdf файла соответствует размеру 450х320 мм. """
+def CropBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+    """ Фактический (видимый) размер документа равен SRA3 (320х450 мм). """
 
-    if file_print_sheet_size == SRA3['name'] and get_page_size(file) and \
-            SRA3['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3['height'] + VILETI and \
-            SRA3['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3['width'] + VILETI:
+    if not all_pages_has_same_size(file):
+        return False
+
+    page_height, page_width = sorted(get_current_page_size(file.pages[0]))
+
+    if file_print_sheet_size == SRA3['name'] and \
+            SRA3['height'] - PAGE_SIZE_DIAPASON <= page_height <= SRA3['height'] + VILETI and \
+            SRA3['width'] - PAGE_SIZE_DIAPASON <= page_width <= SRA3['width'] + VILETI:
         return True
 
-    return False
 
+def CropBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
+    """ Фактический (видимый) размер документа равен SRA3+ (330х487 мм). """
 
-# def is_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
-#     use document CropBox
-#     pass
-#
-# def is_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
-#     use document CropBox
-#     pass
+    if not all_pages_has_same_size(file):
+        return False
 
-def TrimBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
-    """ Возвращает True, если TrimBox .pdf файла соответствует размеру 487x330 мм. """
+    page_height, page_width = sorted(get_current_page_size(file.pages[0]))
 
-    if file_print_sheet_size == SRA3_PLUS['name'] and get_page_size(file) and \
-            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[0] <= SRA3_PLUS['height'] + VILETI and \
-            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= get_page_size(file)[1] <= SRA3_PLUS['width'] + VILETI:
+    if file_print_sheet_size == SRA3_PLUS['name'] and \
+            SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= page_height <= SRA3_PLUS['height'] + VILETI and \
+            SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= page_width <= SRA3_PLUS['width'] + VILETI:
         return True
 
-    return False
 
-
+# ====================================== В папки Hot Folder. ==========================================
 def go_to_SRA3_universal(product_size: str, file_print_sheet_size: str, extra: str) -> bool:
     """ Отвечает на вопрос, какие файлы идут на раскладку с помощью экшена SRA3_universal. """
 
