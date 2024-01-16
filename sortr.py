@@ -67,31 +67,40 @@ while True:
                 # Проверка размера документа.
                 case f_product_size, _, _, f_print_sheet_size, _, \
                     if not (
-                        funcs.TrimBox_equal_product_size(pdf_file, f_product_size) or
-                        funcs.TrimBox_equal_vizitka_90x50_size(pdf_file, f_product_size) or
-                        funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
-                        funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
+                        funcs.CropBox_equal_product_size(pdf_file, f_product_size) or
+                        funcs.CropBox_equal_vizitka_90x50_size(pdf_file, f_product_size) or
+                        funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                        \rTrimBox документа не соответствует либо формату раскладки {f_print_sheet_size}, либо \
+                        \rCropBox документа не соответствует либо формату раскладки {f_print_sheet_size}, либо \
 размеру подписи {f_product_size}.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # Проверка раскладки на поворот.
-                case _, _, _, f_print_sheet_size, _, \
-                    if (
-                               funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
-                               funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)
-                       ) and not funcs.SRA3_or_SRA3_PLUS_horizontal(pdf_file, f_print_sheet_size):
+                case f_product_size, _, _, f_print_sheet_size, _, \
+                    if (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)
+                        ) and not (
+                        funcs.all_pages_are_landscape(pdf_file, f_product_size) or
+                        funcs.all_pages_are_portrait(pdf_file, f_product_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                    \rФайл формата {f_print_sheet_size} вертикальный.\n''')
+                    \rПечать в листах имеет разную ориентацию страниц.\n''')
+                    funcs.replacer(filename, errors + filename)
+
+                # Проверка файла на одинаковую ориентацию страниц документа.
+                case f_product_size, _, _, _, _, \
+                    if not (funcs.all_pages_are_landscape(pdf_file, f_product_size) or
+                            funcs.all_pages_are_portrait(pdf_file, f_product_size)):
+                    print(f'''[{funcs.get_current_time()}]   {filename}
+                    \rСтраницы документа имеют разную ориентацию.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # ======================================= В папку output. =============================================
 
                 # Печать в листах либо готовая раскладка.
                 case _, _, _, f_print_sheet_size, _, \
-                    if funcs.TrimBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
-                       funcs.TrimBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
+                    if funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
+                       funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
                     funcs.replacer(filename, output + filename)
 
                 # ====================================== В папки Hot Folder. ==========================================
