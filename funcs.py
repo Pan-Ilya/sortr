@@ -129,12 +129,12 @@ def all_pages_has_same_size(file: PdfReader) -> bool:
     for page in file.pages:
         page_size = [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
         page_size.sort()
-        page_size.append(all_pages_sizes)
+        all_pages_sizes.append(page_size)
 
     return all(map(lambda x: x == all_pages_sizes[0], all_pages_sizes))
 
 
-def get_current_page_size(page) -> list[int]:
+def get_current_page_size(page: 'PageObject') -> list[int]:
     """ Возвращает список из фактической (видимой) высоты и ширины текущей страницы документа. """
 
     return [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
