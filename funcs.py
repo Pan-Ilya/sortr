@@ -4,6 +4,7 @@ import shutil
 import time
 from PyPDF2 import PdfReader, PageObject
 from decimal import Decimal
+from typing import Callable, Tuple, Any
 
 COLOR_4_0 = ['1+0', '4+0', '5+0']
 COLOR_4_4 = ['1+1', '4+4', '5+5']
@@ -133,14 +134,23 @@ def all_pages_has_same_size(file: PdfReader) -> bool:
     return all(map(lambda x: x == all_pages_sizes[0], all_pages_sizes))
 
 
+def all_pages_has_same_size_checker(func: Callable) -> Callable:
+    """ Предварительная проверка документа, на равенство размеров всех страниц между собой. """
+
+    def wrapper(file: PdfReader, file_size: str) -> bool:
+        return all_pages_has_same_size(file) and func(file, file_size)
+
+    return wrapper
+
+
 def get_current_page_size(page: PageObject) -> list[int]:
     """ Возвращает список из фактической (видимой) высоты и ширины текущей страницы документа. """
 
     return [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
 
 
-def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
-    """ Выполняет проверку на горизонтальное положение всех страниц документа. """
+def get_product_sides(product_size: str) -> Tuple[int | Any, int | Any]:
+    """ Возвращает размеры сторон изделия, сперва меньшую сторону, затем большую сторону. """
 
     if product_size in ALLOWED_VIZ_SIZES['file_signature']:
         small_product_side, big_product_side = 50, 90
@@ -155,6 +165,14 @@ def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
 
     else:
         small_product_side, big_product_side = product_size_to_mm(product_size)
+
+    return small_product_side, big_product_side
+
+
+def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
+    """ Выполняет проверку на горизонтальное положение всех страниц документа. """
+
+    small_product_side, big_product_side = get_product_sides(product_size)
 
     for page in file.pages:
         file_height, file_width = get_current_page_size(page)
@@ -173,19 +191,7 @@ def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
 def all_pages_are_portrait(file: PdfReader, product_size: str) -> bool:
     """ Выполняет проверку на вертикальное положение всех страниц документа. """
 
-    if product_size in ALLOWED_VIZ_SIZES['file_signature']:
-        small_product_side, big_product_side = 50, 90
-
-    elif product_size == SRA3['name']:
-        small_product_side = SRA3['height']
-        big_product_side = SRA3['width']
-
-    elif product_size == SRA3_PLUS['name']:
-        small_product_side = SRA3_PLUS['height']
-        big_product_side = SRA3_PLUS['width']
-
-    else:
-        small_product_side, big_product_side = product_size_to_mm(product_size)
+    small_product_side, big_product_side = get_product_sides(product_size)
 
     for page in file.pages:
         file_height, file_width = get_current_page_size(page)
@@ -201,22 +207,18 @@ def all_pages_are_portrait(file: PdfReader, product_size: str) -> bool:
     return True
 
 
+@all_pages_has_same_size_checker
 def CropBox_equal_product_size(file: PdfReader, product_size: str) -> bool:
     """ Фактический (видимый) размер документа равен размеру готового изделия.
     Размер готового изделия указан в подписи .pdf документа. """
-
-    if not all_pages_has_same_size(file):
-        return False
 
     pure_page_size_values = sorted(side_size - VILETI for side_size in get_current_page_size(file.pages[0]))
     return pure_page_size_values == product_size_to_mm(product_size)
 
 
+@all_pages_has_same_size_checker
 def CropBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool:
     """ Фактический (видимый) размер документа равен размеру визитки (диапазон значений). """
-
-    if not all_pages_has_same_size(file):
-        return False
 
     VIZ_DIAPASON_START, VIZ_DIAPASON_END = ALLOWED_VIZ_SIZES['size_value']
     VIZ_DIAPASON_START_HEIGHT, VIZ_DIAPASON_START_WIDTH = VIZ_DIAPASON_START
@@ -232,11 +234,9 @@ def CropBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool
     return False
 
 
+@all_pages_has_same_size_checker
 def CropBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Фактический (видимый) размер документа равен SRA3 (320х450 мм). """
-
-    if not all_pages_has_same_size(file):
-        return False
 
     page_height, page_width = sorted(get_current_page_size(file.pages[0]))
 
@@ -246,11 +246,9 @@ def CropBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool
         return True
 
 
+@all_pages_has_same_size_checker
 def CropBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
     """ Фактический (видимый) размер документа равен SRA3+ (330х487 мм). """
-
-    if not all_pages_has_same_size(file):
-        return False
 
     page_height, page_width = sorted(get_current_page_size(file.pages[0]))
 
