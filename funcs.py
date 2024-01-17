@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 import time
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReader, PageObject
 from decimal import Decimal
 
 COLOR_4_0 = ['1+0', '4+0', '5+0']
@@ -133,7 +133,7 @@ def all_pages_has_same_size(file: PdfReader) -> bool:
     return all(map(lambda x: x == all_pages_sizes[0], all_pages_sizes))
 
 
-def get_current_page_size(page: 'PageObject') -> list[int]:
+def get_current_page_size(page: PageObject) -> list[int]:
     """ Возвращает список из фактической (видимой) высоты и ширины текущей страницы документа. """
 
     return [decimal_to_mm(page.cropbox.height), decimal_to_mm(page.cropbox.width)]
@@ -218,9 +218,18 @@ def CropBox_equal_vizitka_90x50_size(file: PdfReader, product_size: str) -> bool
     if not all_pages_has_same_size(file):
         return False
 
-    elif product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
-            sorted(get_current_page_size(file.pages[0])) in ALLOWED_VIZ_SIZES['size_value']:
+    VIZ_DIAPASON_START, VIZ_DIAPASON_END = ALLOWED_VIZ_SIZES['size_value']
+    VIZ_DIAPASON_START_HEIGHT, VIZ_DIAPASON_START_WIDTH = VIZ_DIAPASON_START
+    VIZ_DIAPASON_END_HEIGHT, VIZ_DIAPASON_END_WIDTH = VIZ_DIAPASON_END
+
+    product_height, product_width = sorted(get_current_page_size(file.pages[0]))
+
+    if product_size in ALLOWED_VIZ_SIZES['file_signature'] and \
+            VIZ_DIAPASON_START_HEIGHT <= product_height <= VIZ_DIAPASON_END_HEIGHT and \
+            VIZ_DIAPASON_START_WIDTH <= product_width <= VIZ_DIAPASON_END_WIDTH:
         return True
+
+    return False
 
 
 def CropBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool:

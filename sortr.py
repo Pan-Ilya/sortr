@@ -80,7 +80,7 @@ while True:
                 case _, _, _, f_print_sheet_size, _, \
                     if (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
                         funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
-                           funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
+                        funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rПечать в листах имеет либо разную ориентацию страниц, либо вертикальную.\n''')
                     funcs.replacer(filename, errors + filename)
