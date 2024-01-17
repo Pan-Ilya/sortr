@@ -76,20 +76,20 @@ while True:
 размеру подписи {f_product_size}.\n''')
                     funcs.replacer(filename, errors + filename)
 
-                # Проверка раскладки на поворот.
-                case f_product_size, _, _, f_print_sheet_size, _, \
+                # Проверка раскладки на горизонтальное положение.
+                case _, _, _, f_print_sheet_size, _, \
                     if (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)
-                        ) and not (
-                        funcs.all_pages_are_landscape(pdf_file, f_product_size) or
-                        funcs.all_pages_are_portrait(pdf_file, f_product_size)):
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
+                           funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                    \rПечать в листах имеет разную ориентацию страниц.\n''')
+                    \rПечать в листах имеет либо разную ориентацию страниц, либо вертикальную.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # Проверка файла на одинаковую ориентацию страниц документа.
-                case f_product_size, _, _, _, _, \
-                    if not (funcs.all_pages_are_landscape(pdf_file, f_product_size) or
+                case f_product_size, _, _, f_print_sheet_size, _, \
+                    if not (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
+                            funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
+                           (funcs.all_pages_are_landscape(pdf_file, f_product_size) or
                             funcs.all_pages_are_portrait(pdf_file, f_product_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rСтраницы документа имеют разную ориентацию.\n''')

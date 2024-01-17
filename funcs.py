@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 import time
-from typing import Any
 from PyPDF2 import PdfReader
 from decimal import Decimal
 
@@ -145,6 +144,15 @@ def all_pages_are_landscape(file: PdfReader, product_size: str) -> bool:
 
     if product_size in ALLOWED_VIZ_SIZES['file_signature']:
         small_product_side, big_product_side = 50, 90
+
+    elif product_size == SRA3['name']:
+        small_product_side = SRA3['height']
+        big_product_side = SRA3['width']
+
+    elif product_size == SRA3_PLUS['name']:
+        small_product_side = SRA3_PLUS['height']
+        big_product_side = SRA3_PLUS['width']
+
     else:
         small_product_side, big_product_side = product_size_to_mm(product_size)
 
@@ -167,6 +175,15 @@ def all_pages_are_portrait(file: PdfReader, product_size: str) -> bool:
 
     if product_size in ALLOWED_VIZ_SIZES['file_signature']:
         small_product_side, big_product_side = 50, 90
+
+    elif product_size == SRA3['name']:
+        small_product_side = SRA3['height']
+        big_product_side = SRA3['width']
+
+    elif product_size == SRA3_PLUS['name']:
+        small_product_side = SRA3_PLUS['height']
+        big_product_side = SRA3_PLUS['width']
+
     else:
         small_product_side, big_product_side = product_size_to_mm(product_size)
 
