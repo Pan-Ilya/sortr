@@ -74,6 +74,25 @@ def get_params_from_filename(filename: str) -> list[str | int]:
     return [f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra]
 
 
+def get_multy_page_params_from_filename(filename: str) -> list[str | int]:
+    color_pattern = r'_\d\+\d_'
+    multi_pages_pattern = r'(?i).*?' \
+                          r'(?P<product>spring|brushura|catalog).*?' \
+                          r'(?P<quantity>\d*)?' \
+                          r'(?P<print_sheet_size>SRA\d\+?)'
+
+    product, quantity, print_sheet_size = re.findall(multi_pages_pattern, filename)[0]
+    quantity = int(quantity) if quantity.isdigit() else 1
+
+    if re.search(color_pattern, filename):
+        colorify = re.search(color_pattern, filename)[0]
+        colorify.replace('_', '')
+    else:
+        colorify = '4+4'
+
+    return [product, colorify, quantity, print_sheet_size]
+
+
 def replacer(filename: str, destination: str) -> None:
     """ Перемещает файл в указанную директорию. Всего 3 возможных варианта:
     1) Перемещение файла в указанную директорию
@@ -245,6 +264,8 @@ def CropBox_equal_SRA3_size(file: PdfReader, file_print_sheet_size: str) -> bool
             SRA3['width'] - PAGE_SIZE_DIAPASON <= page_width <= SRA3['width'] + VILETI:
         return True
 
+    return False
+
 
 @all_pages_has_same_size_checker
 def CropBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) -> bool:
@@ -256,6 +277,8 @@ def CropBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) ->
             SRA3_PLUS['height'] - PAGE_SIZE_DIAPASON <= page_height <= SRA3_PLUS['height'] + VILETI and \
             SRA3_PLUS['width'] - PAGE_SIZE_DIAPASON <= page_width <= SRA3_PLUS['width'] + VILETI:
         return True
+
+    return False
 
 
 # ====================================== В папки Hot Folder. ==========================================

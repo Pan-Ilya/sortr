@@ -41,7 +41,51 @@ print('Слушаю текущую папку...\n')
 while True:
 
     try:
-        for filename in funcs.get_all_filenames_in_directory(from_path):
+        all_filenames_in_directory = funcs.get_all_filenames_in_directory(from_path)
+        all_multy_pages = filter(funcs.get_multy_page_params_from_filename, all_filenames_in_directory)
+        all_print_files = filter(funcs.get_all_filenames_in_directory, all_filenames_in_directory)
+        all_other_files = filter(lambda x:
+                                 x not in all_multy_pages and
+                                 x not in all_print_files, all_filenames_in_directory)
+
+        # Перебор всех неизвестных имён, которые не соответствую ни одному регулярному выражению.
+        for unknown_name in all_other_files:
+            print(f'''[{funcs.get_current_time()}]   {unknown_name}
+            \rНе понимаю имя файла. Направляю его в папку с ошибками.\n''')
+            funcs.replacer(unknown_name, errors + unknown_name)
+
+        # Перебор всех многостраничных документов (брошюры на скобу и пружину, каталоги).
+        for multy_pages_name in all_multy_pages:
+            multy_pages_param = funcs.get_multy_page_params_from_filename(multy_pages_name)
+            # multy_pages_param = [product, colorify, quantity, print_sheet_size]
+
+            pdf_file = PdfReader(multy_pages_name)
+            pages = len(pdf_file.pages)
+
+            match multy_pages_param:
+
+                # Проверка цветности документа.
+                case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
+                    print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
+                    \rЦветность многостранички не соответствует подписи.\n''')
+                    funcs.replacer(multy_pages_name, errors + multy_pages_name)
+
+                # Проверка раскладки документа.
+                case _, _, _, f_print_sheet_size, _, \
+                    if not funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
+                       not funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
+                    print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
+                    \rРазмер печатного листа многостранички не соответствует подписи.\n''')
+                    funcs.replacer(multy_pages_name, errors + multy_pages_name)
+
+                # Все остальные случаи идут в папку готово. Wildcard.
+                case _:
+                    print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
+                    \rМногостраничка Ок.\n''')
+                    funcs.replacer(multy_pages_name, output + multy_pages_name)
+
+        # Перебор всех листовых/в листах макетов.
+        for filename in all_print_files:
             filename_params = funcs.get_params_from_filename(filename)
             # filename_params = [file_product_size, file_colorify, file_quantity, file_print_sheet_size, extra]
 
@@ -80,7 +124,7 @@ while True:
                 case _, _, _, f_print_sheet_size, _, \
                     if (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
                         funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
-                        funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
+                           funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rПечать в листах имеет либо разную ориентацию страниц, либо вертикальную.\n''')
                     funcs.replacer(filename, errors + filename)
@@ -141,9 +185,9 @@ while True:
                     print(f'[{funcs.get_current_time()}][E]   {filename}\nНаправляю в папку с ошибками.\n')
                     funcs.replacer(filename, errors + filename)
 
-    except IndexError:
-        print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
-        funcs.replacer(filename, errors + filename)
+    # except IndexError:
+    #     print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
+    #     funcs.replacer(filename, errors + filename)
     except Exception as E:
         print(E)
         print(f'[{funcs.get_current_time()}]   Произошла неожиданная ошибка. Повторяю попытку.')
