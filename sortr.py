@@ -42,8 +42,8 @@ while True:
 
     try:
         all_filenames_in_directory = funcs.get_all_filenames_in_directory(from_path)
-        all_multy_pages = filter(funcs.get_multy_page_params_from_filename, all_filenames_in_directory)
-        all_print_files = filter(funcs.get_all_filenames_in_directory, all_filenames_in_directory)
+        all_multy_pages = list(filter(funcs.get_multy_page_params_from_filename, all_filenames_in_directory))
+        all_print_files = list(filter(funcs.get_params_from_filename, all_filenames_in_directory))
         all_other_files = filter(lambda x:
                                  x not in all_multy_pages and
                                  x not in all_print_files, all_filenames_in_directory)
@@ -65,13 +65,13 @@ while True:
             match multy_pages_param:
 
                 # Проверка цветности документа.
-                case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
+                case _, f_colorify, f_quantity, _ if not funcs.check_colorify(f_colorify, f_quantity, pages):
                     print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
                     \rЦветность многостранички не соответствует подписи.\n''')
                     funcs.replacer(multy_pages_name, errors + multy_pages_name)
 
                 # Проверка раскладки документа.
-                case _, _, _, f_print_sheet_size, _, \
+                case _, _, _, f_print_sheet_size \
                     if not funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
                        not funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
                     print(f'''[{funcs.get_current_time()}]   {multy_pages_name}

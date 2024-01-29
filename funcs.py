@@ -55,42 +55,52 @@ def get_all_filenames_in_directory(path: str) -> list[str]:
         exit_program(5, 1)
 
 
-def get_params_from_filename(filename: str) -> list[str | int]:
+def get_params_from_filename(filename: str) -> list[str | int] | bool:
     """ Возвращает список параметров .pdf файла из его названия.
      Пример имени файла:
      12-05_1108608_2v_160_120x45_4+0_350mat_lamGL1+1_2SRA3_po_160_listov.pdf """
 
     right_filename_pattern = r'(?i).*?' \
                              r'(?P<f_product_size>\d+[xх]\d+).*?' \
-                             r'(?P<color>\d\+\d).*?' \
+                             r'(?<=_)(?P<color>\d\+\d)(?=_).*?' \
                              r'(?P<quantity>\d*)?' \
                              r'(?P<print_sheet_size>SRA\d\+?).*?' \
                              r'(?P<extra>--)?' \
                              r'(?:$|\.)'
 
-    f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra = re.findall(right_filename_pattern, filename)[0]
-    f_quantity = int(f_quantity) if f_quantity.isdigit() else 1
+    result = re.findall(right_filename_pattern, filename)
 
-    return [f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra]
+    if result:
+        f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra = result[0]
+        f_quantity = int(f_quantity) if f_quantity.isdigit() else 1
+
+        return [f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra]
+
+    return False
 
 
-def get_multy_page_params_from_filename(filename: str) -> list[str | int]:
+def get_multy_page_params_from_filename(filename: str) -> list[str | int] | bool:
     color_pattern = r'_\d\+\d_'
     multi_pages_pattern = r'(?i).*?' \
                           r'(?P<product>spring|brushura|catalog).*?' \
                           r'(?P<quantity>\d*)?' \
                           r'(?P<print_sheet_size>SRA\d\+?)'
 
-    product, quantity, print_sheet_size = re.findall(multi_pages_pattern, filename)[0]
-    quantity = int(quantity) if quantity.isdigit() else 1
+    result = re.findall(multi_pages_pattern, filename)
 
-    if re.search(color_pattern, filename):
-        colorify = re.search(color_pattern, filename)[0]
-        colorify.replace('_', '')
-    else:
-        colorify = '4+4'
+    if result:
+        product, quantity, print_sheet_size = result[0]
+        quantity = int(quantity) if quantity.isdigit() else 1
 
-    return [product, colorify, quantity, print_sheet_size]
+        if re.search(color_pattern, filename):
+            colorify = re.search(color_pattern, filename)[0]
+            colorify = colorify.replace('_', '')
+        else:
+            colorify = '4+4'
+
+        return [product, colorify, quantity, print_sheet_size]
+
+    return False
 
 
 def replacer(filename: str, destination: str) -> None:
