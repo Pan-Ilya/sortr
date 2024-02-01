@@ -60,9 +60,10 @@ def get_params_from_filename(filename: str) -> list[str | int] | bool:
      Пример имени файла:
      12-05_1108608_2v_160_120x45_4+0_350mat_lamGL1+1_2SRA3_po_160_listov.pdf """
 
+    multy_page_products = r'(?P<product>spring|brushura|catalog|bloknot)'
     right_filename_pattern = r'(?i).*?' \
                              r'(?P<f_product_size>\d+[xх]\d+).*?' \
-                             r'(?<=_)(?P<color>\d\+\d)(?=_).*?' \
+                             r'(?P<color>\d\+\d).*?' \
                              r'(?P<quantity>\d*)?' \
                              r'(?P<print_sheet_size>SRA\d\+?).*?' \
                              r'(?P<extra>--)?' \
@@ -70,7 +71,7 @@ def get_params_from_filename(filename: str) -> list[str | int] | bool:
 
     result = re.findall(right_filename_pattern, filename)
 
-    if result:
+    if result and not re.search(multy_page_products, filename):
         f_product_size, f_colorify, f_quantity, f_print_sheet_size, extra = result[0]
         f_quantity = int(f_quantity) if f_quantity.isdigit() else 1
 
@@ -80,9 +81,13 @@ def get_params_from_filename(filename: str) -> list[str | int] | bool:
 
 
 def get_multy_page_params_from_filename(filename: str) -> list[str | int] | bool:
+    """ Возвращает список параметров многостранчиного (брошюры на скобу и пружину, каталоги) .pdf файла из его названия.
+     Пример имени файла:
+     01_31(01)_1137493_brushura_OBL_4+0_200x300_4str_250mat_lamMAT1+0_1_scoba_SRA3_1_list.pdf """
+
     color_pattern = r'_\d\+\d_'
     multi_pages_pattern = r'(?i).*?' \
-                          r'(?P<product>spring|brushura|catalog).*?' \
+                          r'(?P<product>spring|brushura|catalog|bloknot).*?' \
                           r'(?P<quantity>\d*)?' \
                           r'(?P<print_sheet_size>SRA\d\+?)'
 
@@ -164,7 +169,7 @@ def all_pages_has_same_size(file: PdfReader) -> bool:
 
 
 def all_pages_has_same_size_checker(func: Callable) -> Callable:
-    """ Предварительная проверка документа, на равенство размеров всех страниц между собой. """
+    """ Декоратор. Предварительная проверка документа, на равенство размеров всех страниц между собой. """
 
     def wrapper(file: PdfReader, file_size: str) -> bool:
         return all_pages_has_same_size(file) and func(file, file_size)

@@ -44,9 +44,7 @@ while True:
         all_filenames_in_directory = funcs.get_all_filenames_in_directory(from_path)
         all_multy_pages = list(filter(funcs.get_multy_page_params_from_filename, all_filenames_in_directory))
         all_print_files = list(filter(funcs.get_params_from_filename, all_filenames_in_directory))
-        all_other_files = filter(lambda x:
-                                 x not in all_multy_pages and
-                                 x not in all_print_files, all_filenames_in_directory)
+        all_other_files = set(all_filenames_in_directory) - (set(all_multy_pages) | set(all_print_files))
 
         # Перебор всех неизвестных имён, которые не соответствую ни одному регулярному выражению.
         for unknown_name in all_other_files:
@@ -56,6 +54,13 @@ while True:
 
         # Перебор всех многостраничных документов (брошюры на скобу и пружину, каталоги).
         for multy_pages_name in all_multy_pages:
+
+            if os.path.isdir(multy_pages_name):
+                print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
+                \rФайлы многостранички проверяю без папок. Ошибка.\n''')
+                funcs.replacer(multy_pages_name, errors + multy_pages_name)
+                continue
+
             multy_pages_param = funcs.get_multy_page_params_from_filename(multy_pages_name)
             # multy_pages_param = [product, colorify, quantity, print_sheet_size]
 
@@ -72,8 +77,9 @@ while True:
 
                 # Проверка раскладки документа.
                 case _, _, _, f_print_sheet_size \
-                    if not funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
-                       not funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
+                    if not (
+                        funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
                     \rРазмер печатного листа многостранички не соответствует подписи.\n''')
                     funcs.replacer(multy_pages_name, errors + multy_pages_name)
@@ -103,6 +109,7 @@ while True:
             match filename_params:
                 # ======================================= В папку errors. =============================================
 
+                # <------------------------------------ Проверка для файлов ------------------------------------>
                 # Проверка цветности документа.
                 case _, f_colorify, f_quantity, _, _, if not funcs.check_colorify(f_colorify, f_quantity, pages):
                     print(f'[{funcs.get_current_time()}]   {filename}\nЦветность документа не соответствует подписи.\n')
@@ -139,13 +146,25 @@ while True:
                     \rСтраницы документа имеют разную ориентацию.\n''')
                     funcs.replacer(filename, errors + filename)
 
+                # <------------------------------------ Проверка для Папок ------------------------------------>
+                #
+                #
+                #
+                #
+
                 # ======================================= В папку output. =============================================
 
                 # Печать в листах либо готовая раскладка.
                 case _, _, _, f_print_sheet_size, _, \
-                    if funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or \
-                       funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size):
+                    if (funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
                     funcs.replacer(filename, output + filename)
+
+                # <------------------------------------ Проверка для Папок ------------------------------------>
+                #
+                #
+                #
+                #
 
                 # ====================================== В папки Hot Folder. ==========================================
                 # Тут идёт работа только с подписями документа.
@@ -185,9 +204,9 @@ while True:
                     print(f'[{funcs.get_current_time()}][E]   {filename}\nНаправляю в папку с ошибками.\n')
                     funcs.replacer(filename, errors + filename)
 
-    # except IndexError:
-    #     print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
-    #     funcs.replacer(filename, errors + filename)
+    except IndexError:
+        print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
+        funcs.replacer(filename, errors + filename)
     except Exception as E:
         print(E)
         print(f'[{funcs.get_current_time()}]   Произошла неожиданная ошибка. Повторяю попытку.')
