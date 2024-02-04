@@ -1,7 +1,8 @@
 import os
 import time
-from PyPDF2 import PdfReader
 import funcs
+from PyPDF2 import PdfReader
+from PyPDF2.errors import PdfReadError
 
 # 1) Open settings.txt file to get hot folder's paths.
 try:
@@ -108,20 +109,18 @@ while True:
 
                 # Проверка количества файлов внутри папки.
                 if len(files_in_directory) != 2:
-                    print('Папка содержит более 2ух файлов. Напрвялю в ошибки.')
+                    print(f'''[{funcs.get_current_time()}]   {filename}'
+                    \rКол-во файлов внутри папки не равно двум. Направляю в ошибки.\n''')
                     funcs.replacer(filename, errors + filename)
                     continue
 
-                print('Мы тут')
-                os.chdir(f"{from_path}\\{filename}")
-                lic, ob = (PdfReader(file) for file in files_in_directory)
-                print(lic, ob, sep='\n')
-                os.chdir(from_path)
+                # Путь до конкретного файла внутри директории - os.path.join(from_path, filename, file)
+                lic, ob = (PdfReader(os.path.join(from_path, filename, file)) for file in files_in_directory)
 
-
-                # Проверка количесвта страниц документа внутри папки.
+                # Проверка количества страниц документа внутри папки.
                 if len(lic.pages) != 1 or len(ob.pages) != 1:
-                    print('Файл внутри папки содержит более одной страницы. Напрвялю в ошибки.')
+                    print(f'''[{funcs.get_current_time()}]   {filename}'
+                    \rФайл внутри папки содержит более одной страницы. Направляю в ошибки.\n''')
                     funcs.replacer(filename, errors + filename)
                     continue
 
@@ -131,17 +130,16 @@ while True:
                 funcs.replacer(filename, errors + filename)
                 continue
 
-
             filename_params = funcs.get_params_from_filename(filename)
             # filename_params = [file_product_size, file_colorify, file_quantity, file_print_sheet_size, extra]
-
 
             match filename_params:
                 # ======================================= В папку errors. =============================================
 
                 # <------------------------------------ Проверка для файлов ------------------------------------>
                 # Проверка цветности документа.
-                case _, f_colorify, f_quantity, _, _, if FILE and not funcs.check_colorify(f_colorify, f_quantity, pages):
+                case _, f_colorify, f_quantity, _, _, \
+                    if FILE and not funcs.check_colorify(f_colorify, f_quantity, pages):
                     print(f'[{funcs.get_current_time()}]   {filename}\nЦветность документа не соответствует подписи.\n')
                     funcs.replacer(filename, errors + filename)
 
@@ -159,10 +157,10 @@ while True:
 
                 # Проверка раскладки на горизонтальное положение.
                 case _, _, _, f_print_sheet_size, _, \
-                    if FILE and (
+                    if (FILE and (
                         funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
-                           funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size):
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not
+                        funcs.all_pages_are_landscape(pdf_file, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rПечать в листах имеет либо разную ориентацию страниц, либо вертикальную.\n''')
                     funcs.replacer(filename, errors + filename)
@@ -170,47 +168,73 @@ while True:
                 # Проверка файла на одинаковую ориентацию страниц документа.
                 case f_product_size, _, _, f_print_sheet_size, _, \
                     if FILE and not (
-                            funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
-                            funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)) and not \
-                           (funcs.all_pages_are_landscape(pdf_file, f_product_size) or
-                            funcs.all_pages_are_portrait(pdf_file, f_product_size)):
+                        funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size)
+                        or
+                        funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)
+                ) and not (funcs.all_pages_are_landscape(pdf_file, f_product_size) or
+                           funcs.all_pages_are_portrait(pdf_file, f_product_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rСтраницы документа имеют разную ориентацию.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # <------------------------------------ Проверка для Папок ------------------------------------>
 
+                # ПАПКА. Проверка цветности имени папки.
+                case _, file_colorify, _, _, _, if DIR and file_colorify not in funcs.COLOR_4_4:
+                    print(f'''[{funcs.get_current_time()}]   {filename}
+                    \rПапка Должна иметь двухстороннюю печать. Сейчас её \
+                    подпись {file_colorify}. Направляю в ошибки.\n''')
+                    funcs.replacer(filename, errors + filename)
+
                 # ПАПКА. Проверка размера документа.
                 case f_product_size, _, _, f_print_sheet_size, _, \
                     if DIR and not (
-                        funcs.CropBox_equal_product_size(lic, f_product_size) and funcs.CropBox_equal_product_size(ob, f_product_size)or
-                        funcs.CropBox_equal_vizitka_90x50_size(lic, f_product_size) and funcs.CropBox_equal_vizitka_90x50_size(ob, f_product_size) or
-                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)):
+                        funcs.CropBox_equal_product_size(lic, f_product_size) and
+                        funcs.CropBox_equal_product_size(ob, f_product_size)
+                        or
+                        funcs.CropBox_equal_vizitka_90x50_size(lic, f_product_size) and
+                        funcs.CropBox_equal_vizitka_90x50_size(ob, f_product_size)
+                        or
+                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size)
+                        or
+                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                        \rCropBox документа не соответствует либо формату раскладки {f_print_sheet_size}, либо \
-размеру подписи {f_product_size}.\n''')
+                    \rCropBox документа внутри папки не соответствует либо формату раскладки \
+{f_print_sheet_size}, либо размеру подписи готового изделия {f_product_size}.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # ПАПКА. Проверка раскладки на горизонтальное положение.
                 case _, _, _, f_print_sheet_size, _, \
                     if DIR and (
-                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)
-                        ) and not (
-                        funcs.all_pages_are_landscape(lic, f_print_sheet_size) and funcs.all_pages_are_landscape(ob, f_print_sheet_size)):
+                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size)
+                        or
+                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)
+                ) and not (
+                        funcs.all_pages_are_landscape(lic, f_print_sheet_size) and
+                        funcs.all_pages_are_landscape(ob, f_print_sheet_size)
+                ):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                    \rПечать в листах имеет либо разную ориентацию страниц, либо вертикальную.\n''')
+                    \rФайлы внутри папки - это готовые раскладки с НЕ правильной ориентацией.\n''')
                     funcs.replacer(filename, errors + filename)
 
                 # ПАПКА. Проверка файла на одинаковую ориентацию страниц документа.
                 case f_product_size, _, _, f_print_sheet_size, _, \
                     if DIR and not (
-                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)
-                        ) and not (
-                        funcs.all_pages_are_landscape(lic, f_product_size) and funcs.all_pages_are_landscape(ob, f_product_size) or
-                        funcs.all_pages_are_portrait(lic, f_product_size) and funcs.all_pages_are_portrait(ob, f_product_size)):
+                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size)
+                        or
+                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)
+                ) and not (
+                        funcs.all_pages_are_landscape(lic, f_product_size) and
+                        funcs.all_pages_are_landscape(ob, f_product_size)
+                        or
+                        funcs.all_pages_are_portrait(lic, f_product_size) and
+                        funcs.all_pages_are_portrait(ob, f_product_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
                     \rСтраницы документа внутри папки имеют разную ориентацию.\n''')
                     funcs.replacer(filename, errors + filename)
@@ -230,11 +254,13 @@ while True:
                 # ПАПКА. Печать в листах либо готовая раскладка. СОЗДАТЬ ПАПКУ ДЛЯ КОМБАЙНА СТРАНИЦ.
                 case _, _, _, f_print_sheet_size, _, \
                     if DIR and (
-                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size) or
-                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)
-                        ):
+                        funcs.CropBox_equal_SRA3_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_size(ob, f_print_sheet_size)
+                        or
+                        funcs.CropBox_equal_SRA3_PLUS_size(lic, f_print_sheet_size) and
+                        funcs.CropBox_equal_SRA3_PLUS_size(ob, f_print_sheet_size)):
                     print(f'''[{funcs.get_current_time()}]   {filename}
-                    \rФайлы внутри папки - это готовые расскалдки с правильной ориентацией. Направляюв готово!\n''')
+                    \rФайлы внутри папки - это готовые раскладки с правильной ориентацией. Направляю в готово!\n''')
                     funcs.replacer(filename, output + filename)
                 #
                 # ====================================== В папки Hot Folder. ==========================================
@@ -278,6 +304,11 @@ while True:
     except IndexError:
         print(f'[{funcs.get_current_time()}]   Не понимаю имя файла {filename}.\nНаправляю его в папку с ошибками.\n')
         funcs.replacer(filename, errors + filename)
+    except PdfReadError:
+        # EmptyFileError
+        print(f'''[{funcs.get_current_time()}]   {filename}
+        \rОшибка при чтении .pdf - файлика. Направляю в ошибки.\n''')
+        funcs.replacer(filename, errors + filename)
     except Exception as E:
         print(E)
         print(f'[{funcs.get_current_time()}]   Произошла неожиданная ошибка. Повторяю попытку.')
@@ -287,4 +318,5 @@ while True:
 # TODO:
 #  - Что делать с папками:
 #   -- не выполнять проверку, сразу сортировать по имени
-#   -- либо отправлять в папку с ошибками.                            +++
+#   -- согласно имени папки проверять файлы внутри         +++
+#   -- отправлять в папку с ошибками.
