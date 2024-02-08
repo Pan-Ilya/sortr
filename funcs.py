@@ -64,7 +64,7 @@ def get_params_from_filename(filename: str) -> list[str | int] | bool:
     right_filename_pattern = r'(?i).*?' \
                              r'(?P<f_product_size>\d+[xх]\d+).*?' \
                              r'(?P<color>\d\+\d).*?' \
-                             r'(?P<quantity>\d*)(?:[ _-]|)' \
+                             r'(?P<quantity>\d*)(?:[ -]|)' \
                              r'(?P<print_sheet_size>SRA\d\+?).*?' \
                              r'(?P<extra>--)?' \
                              r'(?:$|\.)'
@@ -88,7 +88,7 @@ def get_multy_page_params_from_filename(filename: str) -> list[str | int] | bool
     color_pattern = r'_\d\+\d_'
     multi_pages_pattern = r'(?i).*?' \
                           r'(?P<product>spring|brushura|catalog|bloknot).*?' \
-                          r'(?P<quantity>\d*)(?:[ _-]|)' \
+                          r'(?P<quantity>\d*)(?:[ -]|)' \
                           r'(?P<print_sheet_size>SRA\d\+?)'
 
     result = re.findall(multi_pages_pattern, filename)
