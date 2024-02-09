@@ -87,6 +87,7 @@ while True:
 
                 # Все остальные случаи идут в папку готово. Wildcard.
                 case _:
+                    # funcs.white_to_knockout(multy_pages_name)
                     print(f'''[{funcs.get_current_time()}]   {multy_pages_name}
                     \rМногостраничка Ок.\n''')
                     funcs.replacer(multy_pages_name, output + multy_pages_name)
@@ -247,6 +248,7 @@ while True:
                     if FILE and (
                         funcs.CropBox_equal_SRA3_size(pdf_file, f_print_sheet_size) or
                         funcs.CropBox_equal_SRA3_PLUS_size(pdf_file, f_print_sheet_size)):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, output + filename)
 
                 # <------------------------------------ Проверка для Папок ------------------------------------>
@@ -269,31 +271,37 @@ while True:
                 # В папку с экшеном SRA3_universal
                 case f_product_size, _, _, f_print_sheet_size, extra \
                     if funcs.go_to_SRA3_universal(f_product_size, f_print_sheet_size, extra):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_SRA3 + filename)
 
                 # В папку с экшеном SRA3_universal_1_rez
                 case f_product_size, _, _, f_print_sheet_size, extra \
                     if funcs.go_to_SRA3_universal_1_rez(f_product_size, f_print_sheet_size, extra):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_SRA3_1_rez + filename)
 
                 # В папку с экшеном SRA3+_universal
                 case _, _, _, f_print_sheet_size, extra \
                     if funcs.go_to_SRA3_PLUS_universal(f_print_sheet_size, extra):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_SRA3_plus + filename)
 
                 # В папку с экшеном SRA3+_universal_1_rez
                 case _, _, _, f_print_sheet_size, extra \
                     if funcs.go_to_SRA3_PLUS_universal_1_rez(f_print_sheet_size, extra):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_SRA3_plus_1_rez + filename)
 
                 # В папку с экшеном viz_4+0
                 case f_product_size, f_colorify, _, f_print_sheet_size, _, \
                     if funcs.go_to_viz_4_0(f_product_size, f_colorify, f_print_sheet_size):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_viz_4_0 + filename)
 
                 # В папку с экшеном viz_4+4
                 case f_product_size, f_colorify, _, f_print_sheet_size, _, \
                     if funcs.go_to_viz_4_4(f_product_size, f_colorify, f_print_sheet_size):
+                    # funcs.white_to_knockout(filename)
                     funcs.replacer(filename, input_viz_4_4 + filename)
 
                 # Все остальные случаи идут в папку с ошибками. Wildcard.

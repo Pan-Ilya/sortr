@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 import time
 from PyPDF2 import PdfReader, PageObject
 from decimal import Decimal
@@ -294,6 +295,32 @@ def CropBox_equal_SRA3_PLUS_size(file: PdfReader, file_print_sheet_size: str) ->
         return True
 
     return False
+
+
+def white_to_knockout(filename: str) -> None:
+    """ Выполняет снятие Overprint-а с белого цвета за счёт вызова экшена
+    Knockout White Tex.eal через PitStop Server CLI """
+
+    file_path = os.path.abspath(filename)
+    CLI_path = r"C:\Program Files\Enfocus\Enfocus PitStop Server 23\PitStopServerCLI.exe"
+    script_path = r"C:\Program Files\Enfocus\Enfocus PitStop Server 23\Resources\Action Lists\Prepress\Knockout White Tex.eal"
+
+    if os.path.exists(CLI_path) and os.path.exists(script_path):
+        print('Снимаю Overprint с белого...')
+        subprocess.run([CLI_path, '-input', file_path, '-mutator', script_path, '-output', file_path])
+    else:
+        print('Не нахожу файлов PitStop server CLI, поэтому НЕ выполняю снятие белого Overprint-a.')
+
+    # TODO:
+    #  Выполнить для папки с пдф файлами путём установки флага dir = True. По умолчанию False.
+
+    # try:
+    #     subprocess.run([CLI_path, '-input', file_path, '-mutator', script_path, '-output', file_path])
+    # except:
+    #     print('ОШИБКА')
+    #     print(f'''[{funcs.get_current_time()}]   {os.path.basename(file_path)}
+    #           \rОшибка при снятии белого оверпринта. Направляю в ошибки.\n''')
+    #     funcs.replacer(filename, errors + filename)
 
 
 # ====================================== В папки Hot Folder. ==========================================
